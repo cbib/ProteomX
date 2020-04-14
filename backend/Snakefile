@@ -31,7 +31,7 @@ rule conversion:
     output:
         converted = "data/{project}/{version}/csv/{sample}.csv"
     shell:
-        "./scripts/excel_to_csv.py -i {input.data} -o {output.converted} -p {PROJECT} -v {VERSION}"
+        "./backend/excel_to_csv.py -i {input.data} -o {output.converted} -p {PROJECT} -v {VERSION}"
 
 
 rule mapping:
@@ -41,7 +41,7 @@ rule mapping:
     output:
         mapped = "data/{project}/{version}/mapped/{sample}.csv"
     shell:
-        "./scripts/mapping.py -i {input.data} -o {output.mapped} -map {input.mapping} -p {PROJECT} -v {VERSION}"
+        "./backend/mapping.py -i {input.data} -o {output.mapped} -map {input.mapping} -p {PROJECT} -v {VERSION}"
 
 
 rule proteomic_preprocessing:
@@ -50,7 +50,7 @@ rule proteomic_preprocessing:
    output:
         filtered = "data/{project}/{version}/preprocessed/{sample}.csv"
    shell:
-        "./scripts/preprocessing.py -i {input.data} -o {output.filtered} -p {PROJECT} -v {VERSION}"
+        "./backend/preprocessing.py -i {input.data} -o {output.filtered} -p {PROJECT} -v {VERSION}"
 
 rule clean_lines_na:
     input:
@@ -58,7 +58,7 @@ rule clean_lines_na:
     output:
         "data/{project}/{version}/no_na/{sample}.csv"
     shell:
-        "./scripts/clean_na.py -i {input} -o {output} -p {PROJECT} -v {VERSION}"
+        "./backend/clean_na.py -i {input} -o {output} -p {PROJECT} -v {VERSION}"
 
 rule reduce:
     input:
@@ -66,7 +66,7 @@ rule reduce:
     output:
         reduced = "data/{project}/{version}/reduced/{sample}.csv"
     shell:
-        "./scripts/reduce.py -i {input.data} -o {output} -p {PROJECT} -v {VERSION}"
+        "./backend/reduce.py -i {input.data} -o {output} -p {PROJECT} -v {VERSION}"
 
 rule log2FC:
     input:
@@ -74,7 +74,7 @@ rule log2FC:
     output:
         data = "data/{project}/{version}/log2FC/{sample}.csv"
     shell:
-        "./scripts/ratio.py -i {input.data} -o {output.data} -p {PROJECT} -v {VERSION}"
+        "./backend/ratio.py -i {input.data} -o {output.data} -p {PROJECT} -v {VERSION}"
 
 rule overlap:
     input:
@@ -83,7 +83,7 @@ rule overlap:
         data = "data/{project}/{version}/overlap/{sample}.csv",
         fig = touch("data/{project}/{version}/Figures/overlap_distribution/{sample}")
     shell:
-        "./scripts/overlap.py -i {input.data} -o {output.data} -f {output.fig} -p {PROJECT} -v {VERSION}"
+        "./backend/overlap.py -i {input.data} -o {output.data} -f {output.fig} -p {PROJECT} -v {VERSION}"
 
 
 rule ttest:
@@ -92,5 +92,5 @@ rule ttest:
     output:
           "data/{project}/{version}/ttest/{sample}.csv"
     shell:
-        "./scripts/ttest_welch.py -i {input.data} -o {output} -test two-sided -id Accession"
+        "./backend/ttest_welch.py -i {input.data} -o {output} -test two-sided -id Accession"
 
