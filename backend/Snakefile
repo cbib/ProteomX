@@ -21,15 +21,8 @@ rule all:
     input:
         expand("data/{project}/{version}/csv/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
         expand("data/{project}/{version}/mapped/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
-        #expand("data/{project}/{version}/preprocessed/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
-        #expand("data/{project}/{version}/reduced/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
-        #expand("data/{project}/{version}/no_na/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
-        #expand("data/{project}/{version}/ratio/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
-        #expand("data/{project}/{version}/overlap/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
-        #expand("data/{project}/{version}/5_no_na/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
         expand("data/{project}/{version}/ttest/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
-        #expand("data/{project}/{version}/Figures/boxplots/{sample}", project = PROJECT, version=VERSION, sample=SAMPLES),
-        #expand("data/{project}/{version}/gene_name/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES)
+
 
 
 rule conversion:
@@ -101,30 +94,3 @@ rule ttest:
     shell:
         "./scripts/ttest_welch.py -i {input.data} -o {output} -test two-sided -id Accession"
 
-
-rule gene_name:
-    input:
-        "data/{project}/{version}/ttest/{sample}.csv"
-    output:
-        "data/{project}/{version}/gene_name/{sample}.csv"
-    shell:
-        "./scripts/proteomx_gene_name.py -i {input} -o {output} -p {PROJECT} -v {VERSION}"
-
-
-rule boxplots:
-    input:
-         data = "data/{project}/{version}/ttest/{sample}.csv"
-    output:
-          touch("data/{project}/{version}/Figures/boxplots/{sample}")
-    shell:
-        "./scripts/boxplot.py -i {input.data} -o {output} -p {PROJECT} -v {VERSION}"
-
-
-rule ttest_filtering:
-    input:
-        data = "data/{project}/{version}/7_ttest/{sample}_reduced.csv"
-    output:
-          "data/{project}/{version}/8_ttest_filtered/{sample}_reduced.csv"
-    shell:
-        "./scripts/augmented_data_filtering.py -i {input.data} -o {output} -p {PROJECT} -v {VERSION}"
-        "./scripts/filter_augmented_data.py -i {input.data} -o {output} -p {PROJECT} -v {VERSION}"
