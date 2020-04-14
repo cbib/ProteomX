@@ -62,7 +62,7 @@ if __name__ == "__main__":
         with open(args.config_file) as f:
             rule_params = json.load(f)
 
-    logpath = os.path.join(paths.root_dir, paths.data_dir, args.project, args.version, 'log/convert_to_csv.log')
+    logpath = os.path.join(paths.global_root_dir, paths.global_data_dir, args.project, args.version, 'log/convert_to_csv.log')
     logger = h.get_logger(logpath)
     log_info_df()
 

@@ -89,7 +89,7 @@ if __name__ == "__main__":
     args = get_args()
     rule_params = h.load_json_parameter(args.project, args.version)
 
-    logpath = os.path.join(paths.root_dir, paths.data_dir, args.project, args.version, 'log/preprocessing.log')
+    logpath = os.path.join(paths.global_root_dir, paths.global_data_dir, args.project, args.version, 'log/preprocessing.log')
     logger = h.get_logger(logpath)
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)

@@ -2,3 +2,4 @@
 *.csv
 venv/
 .idea
+config_files/*.json

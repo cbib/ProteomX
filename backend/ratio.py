@@ -58,7 +58,7 @@ if __name__ == "__main__":
     filename = h.filename(args.input_file)
     data_structure = h.load_json_data(args.project, args.version, filename)
 
-    logpath = os.path.join(paths.root_dir, paths.data_dir, args.project, args.version, 'log/ratio.log')
+    logpath = os.path.join(paths.global_root_dir, paths.global_data_dir, args.project, args.version, 'log/ratio.log')
     logger = h.get_logger(logpath)
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
