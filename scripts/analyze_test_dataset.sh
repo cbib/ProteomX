@@ -6,4 +6,4 @@ VENV_DIR=$CURRENT_DIR/../venv/
 
 source ${VENV_DIR}/bin/activate
 export PYTHONPATH=${BACK_DIR}:$PYTHONPATH
-snakemake -s ${BACK_DI}/Snakefile
+snakemake -p -s ${BACK_DIR}/Snakefile --config project="proteomX" analysis_name="sample"
