@@ -3,6 +3,6 @@
 
 # Prerequisites
 
-* Python 3.81
+* Python 3.8.1
 
 # Setup
