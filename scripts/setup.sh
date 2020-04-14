@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-pip3.8 install -r requirements.txt
+sudo /usr/local/bin/pip3.8 install -r requirements.txt
