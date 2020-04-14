@@ -97,6 +97,7 @@ if __name__ == "__main__":
     result_df = rename_col_abundance_withjson(mapping_df, data_df)
 
     path_to_json = rule_params['mapping']["path_to_json_mapping"] + "{}.json".format(filename)
+    path_to_json = os.path.join(paths.root_dir, paths.data_dir, args.project, args.version, path_to_json)
 
     # TODO 
     if not os.path.isdir(os.path.dirname(path_to_json)):
