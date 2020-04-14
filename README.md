@@ -1,1 +1,1 @@
-# TRANSCRIPTOMX
+# ProteomX
