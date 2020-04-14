@@ -15,7 +15,6 @@ import numpy as np
 import logging.config
 import paths
 import helpers as h
-import utils
 
 
 def get_args():

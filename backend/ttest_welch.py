@@ -6,9 +6,15 @@ import pandas as pd
 import statsmodels.stats.multitest as smm
 from loguru import logger
 from scipy import stats
+import os
 
 import helpers as h
-from legacy.utils import get_filename
+
+def get_filename(input_file):
+    filename, file_extension = os.path.splitext(input_file)
+    filename = filename.split("/")[len(filename.split("/")) - 1]
+    return filename
+
 
 parser = argparse.ArgumentParser(description='compute t-test')
 parser.add_argument('-i', '--input_file')
