@@ -15,6 +15,8 @@ data_dir = "ProteomX_sprint/data"
 templates_dir = "ProteomX_sprint/templates"
 snakefile_dir = "ProteomX_sprint/snakefiles"
 
+
+
 paths={
     'root_dir': "/home/clescoat/Documents",
     'config_dir': "ProteomX_sprint/config_files",

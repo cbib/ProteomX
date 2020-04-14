@@ -61,7 +61,7 @@ def reduce_data(df, subsets):
     ddof = rule_params["reduce"]["ddof"]
     for subset in subsets:
         if subset == "sample":
-            reduced_df = utils.reduction_row_by_group(df, ['Proteomic'])
+            reduced_df = reduction_row_by_group(df, ['Proteomic'])
         for protein in df[subset].index.values:
             subset_values = np.array(df[subset].iloc[protein].map(lambda x: locale.atof(x) if type(x) == str else x))  # apply(atof))
             reduced_abundances = subset_values / np.nanstd(subset_values, ddof = ddof)
@@ -72,6 +72,48 @@ def reduce_data(df, subsets):
 
     return reduced_df
 
+
+def reduction_row_by_group(input_df, metadata_col):
+    abundancies = input_df.filter(regex='VAL')
+    if metadata_col[0] == 'Proteomic': #args : nargs '+' => list
+        input_df_metadata = input_df.filter(items=['Accession', 'Description'])
+    else:
+        input_df_metadata = pd.DataFrame(index=input_df.index)
+        for i in range(len(metadata_col)):
+            input_df_metadata = input_df_metadata.join(input_df[metadata_col[i]])
+    #input_df_abundance_rank = input_df.filter(regex = 'Rank_*')
+
+
+    name_ab = []
+    for col in abundancies:
+        col_red = '_'.join(col.split('_')[:-1])
+        name_ab.append(col_red)
+    unique_name_abundance = list(set(name_ab))
+    print(unique_name_abundance)
+    #other_col_to_keep = pd.concat([input_df_metadata, input_df_abundance_rank], axis=1)
+    other_col_to_keep = pd.concat([input_df_metadata], axis=1)
+
+    cond1  = [ x for x in abundancies if unique_name_abundance[0] in x ]
+    cond2 = [x for x in abundancies if unique_name_abundance[1] in x]
+
+    abundancies_red_1 = pd.DataFrame(columns=cond1, index=abundancies.index.values)
+    abundancies_red_2 = pd.DataFrame(columns=cond2, index=abundancies.index.values)
+    for protein in abundancies.index.values:
+        cond1_abundancies = np.array(input_df.loc[protein][cond1].map(lambda x: atof(x) if type(x) == str else x))
+        reduced_abundancies_cond1 = cond1_abundancies / np.nanstd(cond1_abundancies)
+
+        cond2_abundancies = np.array(input_df.loc[protein][cond2].map(lambda x: atof(x) if type(x) == str else x))
+        reduced_abundancies_cond2 = cond2_abundancies / np.nanstd(cond2_abundancies)
+
+        abundancies_red_1.iloc[protein] = reduced_abundancies_cond1
+        abundancies_red_2.iloc[protein] = reduced_abundancies_cond2
+
+    red_avundancies = pd.concat([abundancies_red_1, abundancies_red_2], axis=1)
+    red_avundancies = red_avundancies.add_prefix('Reduced_')
+
+
+    output_df = pd.concat([other_col_to_keep, red_avundancies], axis=1)
+    return (output_df)
 
 if __name__ == "__main__":
     args = get_args()
