@@ -22,6 +22,9 @@ for i in all_col:
     if "Normalized" in i:
         sample_name["header"].append(i.replace("Abundances (Normalized): ", ""))
 
+if len(sample_name["header"]) == 0:
+    sample_name["header"] = all_col
+
 with open("./config_files/samples_names.json", 'w+') as json_file:
     json.dump(sample_name, json_file, indent=True)
 
