@@ -9,11 +9,13 @@ TODO : methode pour accéder à différents valeurs de max na autorisées selon 
 """
 
 import argparse
-import os
-import pandas as pd
-import helpers as h
 import collections
 import logging.config
+import os
+
+import pandas as pd
+
+import helpers as h
 import paths
 
 
@@ -38,12 +40,11 @@ def get_groups(data_structure):
 
 
 def create_dictionary(df, list_group_prefix):
-
     d = collections.defaultdict(dict)
 
     for group in list_group_prefix:
         # strip prefix shared with all other groups
-        #group_name = '_'.join(group.split('_')[1:])
+        # group_name = '_'.join(group.split('_')[1:])
 
         # add max NA authorized
         samples_number = len(df.filter(regex=group).columns)
@@ -68,7 +69,7 @@ def compute_number_of_na(df, d):
     for group in group_list:
         data = df.filter(regex=group)
         kwargs = {d[group]["na_number_column"]: data.isna().sum(axis=1)}
-        df = df.assign(**kwargs) # keyword in assign can't be an expression
+        df = df.assign(**kwargs)  # keyword in assign can't be an expression
 
     return df
 
@@ -77,7 +78,6 @@ def remove_row_with_nas(df, d):
     res = df.copy()
     print(d)
     for group in d:
-
         col = d[group]["na_number_column"]
 
         max_na = d[group]["max_na"]
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     filename = h.filename(args.input_file)
     data_structure = h.load_json_data(args.project, args.version, filename)
 
-    logpath = os.path.join(paths.root_dir, paths.data_dir, args.project, args.version, 'log/remove_lines_na.log')
+    logpath = os.path.join(paths.global_root_dir, paths.global_data_dir, args.project, args.version, 'log/remove_lines_na.log')
     logger = h.get_logger(logpath)
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
@@ -115,4 +115,3 @@ if __name__ == "__main__":
     result_df = result_df.drop(coltodrop, axis=1)
 
     h.export_result_to_csv(result_df, args.output_file)
-

@@ -78,21 +78,21 @@ def get_ab_col(filename, subset, rule_params):
 
 
 def load_json_parameter(project, version):
-    path_to_json = os.path.join(paths.root_dir, paths.config_dir, project, version)
+    path_to_json = os.path.join(paths.global_root_dir, paths.global_config_dir, project, version)
     with open(path_to_json + '/config_file.json') as f:
         parameters = json.load(f)
     return parameters
 
 
 def load_txt_mapping(project, version, filename):
-    path_to_json = os.path.join(paths.root_dir, paths.config_dir, project, version, "dict_file_{}.txt".format(filename))
+    path_to_json = os.path.join(paths.global_root_dir, paths.global_config_dir, project, version, "dict_file_{}.txt".format(filename))
     with open(path_to_json ) as f:
         parameters = json.load(f)
     return parameters
 
 
 def load_json_data(project, version, filename):
-    path_to_json = os.path.join(paths.root_dir, paths.data_dir, project, version, "mapping/samples_json", "{}.json".format(filename))
+    path_to_json = os.path.join(paths.global_root_dir, paths.global_data_dir, project, version, "mapping/samples_json", "{}.json".format(filename))
     with open(path_to_json ) as f:
         data = json.load(f)
     return data
