@@ -68,4 +68,6 @@ if __name__ == "__main__":
     result_df['ratio'] = result_df['gmean_condition'] / result_df['gmean_reference']
     result_df['log2FoldChange'] = np.log2(result_df["ratio"])
 
+    result_df.drop(['gmean_reference', 'gmean_condition', 'ratio'], axis=1, inplace=True)
+
     h.export_result_to_csv(result_df, args.output_file)

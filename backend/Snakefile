@@ -85,12 +85,10 @@ rule overlap:
     shell:
         "./backend/overlap.py -i {input.data} -o {output.data} -f {output.fig} -p {PROJECT} -v {VERSION}"
 
-
 rule ttest:
     input:
          data = "data/{project}/{version}/overlap/{sample}.csv"
     output:
           "data/{project}/{version}/ttest/{sample}.csv"
     shell:
-        "./backend/ttest_welch.py -i {input.data} -o {output} -test two-sided -id Accession"
-
+        "./backend/ttest.py -i {input.data} -o {output} -p {PROJECT} -v {VERSION}"
