@@ -1,0 +1,9 @@
+ yum install gcc-c++ make
+curl -sL https://rpm.nodesource.com/setup_10.x | sudo bash -
+yum install  nodejs
+ProteomX
+sudo npm install -g @angular/cli
+cd /var/www/html
+ng new ProteomX
+cd ProteomX
+ng serve --port 4200 --host 0.0.0.0 --disableHostCheck --base-href /ProteomX/ --deploy-url /ProteomX/ --public-host https://services.cbib.u-bordeaux.fr/ProteomX/
