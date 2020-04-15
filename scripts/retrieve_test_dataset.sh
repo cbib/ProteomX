@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+rm -rf /data/proteomX/sample/
+rm -rf /config_files/proteomX/sample/
 
 mkdir -p data/proteomX/sample/raw_data/
 mkdir -p data/proteomX/sample/mapping/

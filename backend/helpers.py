@@ -3,18 +3,21 @@
 # Credits: Claire Lescoat, Macha Nikolski
 
 import collections
-import os
+import json
 import logging
 import logging.config
-import json
+import os
 import pickle
+
 import paths
 
 
 # TODO a réecrire
+
+
 def autovivify(levels=1, final=dict):
     return (collections.defaultdict(final) if levels < 2 else
-    collections.defaultdict(lambda: autovivify(levels - 1, final)))
+            collections.defaultdict(lambda: autovivify(levels - 1, final)))
 
 
 # https://stackoverflow.com/questions/12734517/json-dumping-a-dict-throws-typeerror-keys-must-be-a-string
@@ -54,7 +57,8 @@ def filename(file):
 # https://docs.python.org/3.6/howto/logging-cookbook.html
 # TODO : looging.conf hardcoded
 def get_logger(logfilename):
-    logging.config.fileConfig('logging.conf', defaults={'logfilename': logfilename}, disable_existing_loggers=False)
+    assert os.path.exists(paths.global_logging_config_file), "Couldn't logging config file"
+    logging.config.fileConfig(paths.global_logging_config_file, defaults={'logfilename': logfilename}, disable_existing_loggers=False)
     logger = logging.getLogger('main')
     return logger
 
@@ -86,14 +90,14 @@ def load_json_parameter(project, version):
 
 def load_txt_mapping(project, version, filename):
     path_to_json = os.path.join(paths.global_root_dir, paths.global_config_dir, project, version, "dict_file_{}.txt".format(filename))
-    with open(path_to_json ) as f:
+    with open(path_to_json) as f:
         parameters = json.load(f)
     return parameters
 
 
 def load_json_data(project, version, filename):
     path_to_json = os.path.join(paths.global_root_dir, paths.global_data_dir, project, version, "mapping/samples_json", "{}.json".format(filename))
-    with open(path_to_json ) as f:
+    with open(path_to_json) as f:
         data = json.load(f)
     return data
 
@@ -104,7 +108,7 @@ def recur_dictify(dataframe):
         if dataframe.values.size == 1: return dataframe.values[0][0]
         return dataframe.values.squeeze()
     grouped = dataframe.groupby(dataframe.columns[0])
-    d = {k: recur_dictify(g.ix[:,1:]) for k,g in grouped}
+    d = {k: recur_dictify(g.ix[:, 1:]) for k, g in grouped}
     return d
 
 
