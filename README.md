@@ -16,6 +16,7 @@ The docker image is defined in the main `Dockerfile`.
 	1. `make shell` will open a bash shell in a new container, in this container you can :
 		1. `/scripts/retrieve_test_dataset_docker.sh` to pull sample datafiles from the CBIB servers
 		1. `/scripts/analyse_test_dataset_docker.sh` to run a sample analysis pipeline on the test dataset. Results are available in the `data/proteomX/sample` folder.
+	1. `make tests` will run all unit tests
 	1. `make serv_dev` will start the angular server and make the app accessible via `http://localhost:4201`
 	1. `make serv_prod` is used internally at the CBIB for our production environment
 1. The container shares the following volumes with the host machine :
