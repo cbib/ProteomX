@@ -12,4 +12,5 @@ COPY frontend/tsconfig.app.json /app/tsconfig.app.json
 COPY frontend/src/ /app/src
 COPY scripts/serve_dev.sh /scripts/serve_dev.sh
 COPY scripts/serve_prod.sh /scripts/serve_prod.sh
+ENV PYTHONPATH "${PYTHONPATH}:/backend"
 CMD ["/scripts/serve_dev.sh"]

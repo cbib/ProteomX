@@ -1,4 +1,5 @@
 SHAREDVOLUMES= -v ${PWD}/data:/data:delegated  -v ${PWD}/config_files:/config_files:delegated -v ${PWD}/scripts:/scripts:delegated -v ${PWD}/backend/:/backend:delegated -v ${PWD}/frontend/src:/app/src:delegated
+ENVVARIABLES= -e PYTHONPATH=/backend:$PYTHONPATH
 # -v ${PWD}/frontend/node_modules:/app/node_modules:delegated
 image:
 	docker build -t example:dev .
