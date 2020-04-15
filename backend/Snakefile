@@ -1,0 +1,94 @@
+import os
+
+PROJECT = config["project"]
+VERSION = config["analysis_name"]
+
+def get_file_name(folder, extension):
+    path_to_data = "data/{}/{}/{}/".format(PROJECT, VERSION, folder)
+    print(path_to_data)
+    file_pattern = '{sample}.' + extension
+    files, = glob_wildcards(os.path.join(path_to_data, file_pattern))
+
+    # ignore hidden files
+    files = [f for f in files if not f.startswith('.')]
+    return files
+
+SAMPLES = get_file_name("raw_data", "xlsx")
+print(SAMPLES)
+
+
+rule all:
+    input:
+        expand("data/{project}/{version}/csv/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
+        expand("data/{project}/{version}/mapped/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
+        expand("data/{project}/{version}/ttest/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
+
+
+
+rule conversion:
+    input:
+        data = "data/{project}/{version}/raw_data/{sample}.xlsx",
+    output:
+        converted = "data/{project}/{version}/csv/{sample}.csv"
+    shell:
+        "./backend/excel_to_csv.py -i {input.data} -o {output.converted} -p {PROJECT} -v {VERSION}"
+
+
+rule mapping:
+    input:
+        data = "data/{project}/{version}/csv/{sample}.csv",
+        mapping = "data/{project}/{version}/mapping/mapping_{sample}.csv"
+    output:
+        mapped = "data/{project}/{version}/mapped/{sample}.csv"
+    shell:
+        "./backend/mapping.py -i {input.data} -o {output.mapped} -map {input.mapping} -p {PROJECT} -v {VERSION}"
+
+
+rule proteomic_preprocessing:
+   input:
+        data = "data/{project}/{version}/mapped/{sample}.csv"
+   output:
+        filtered = "data/{project}/{version}/preprocessed/{sample}.csv"
+   shell:
+        "./backend/preprocessing.py -i {input.data} -o {output.filtered} -p {PROJECT} -v {VERSION}"
+
+rule clean_lines_na:
+    input:
+        "data/{project}/{version}/preprocessed/{sample}.csv"
+    output:
+        "data/{project}/{version}/no_na/{sample}.csv"
+    shell:
+        "./backend/clean_na.py -i {input} -o {output} -p {PROJECT} -v {VERSION}"
+
+rule reduce:
+    input:
+        data = "data/{project}/{version}/no_na/{sample}.csv"
+    output:
+        reduced = "data/{project}/{version}/reduced/{sample}.csv"
+    shell:
+        "./backend/reduce.py -i {input.data} -o {output} -p {PROJECT} -v {VERSION}"
+
+rule log2FC:
+    input:
+        data = "data/{project}/{version}/reduced/{sample}.csv"
+    output:
+        data = "data/{project}/{version}/log2FC/{sample}.csv"
+    shell:
+        "./backend/ratio.py -i {input.data} -o {output.data} -p {PROJECT} -v {VERSION}"
+
+rule overlap:
+    input:
+        data ="data/{project}/{version}/log2FC/{sample}.csv",
+    output:
+        data = "data/{project}/{version}/overlap/{sample}.csv",
+        fig = touch("data/{project}/{version}/Figures/overlap_distribution/{sample}")
+    shell:
+        "./backend/overlap.py -i {input.data} -o {output.data} -f {output.fig} -p {PROJECT} -v {VERSION}"
+
+rule ttest:
+    input:
+         data = "data/{project}/{version}/overlap/{sample}.csv"
+    output:
+          "data/{project}/{version}/ttest/{sample}.csv"
+    shell:
+        "./backend/ttest.py -i {input.data} -o {output} -p {PROJECT} -v {VERSION}"
