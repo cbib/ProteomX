@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#prends le fichier csv en input et génère un fichier json contenant le nom des échantillons.
+
 import json
 import argparse
 import pandas as pd
@@ -17,6 +19,7 @@ data = pd.read_csv(args.input_file, nrows=0)
 
 all_col = [i for i in data.columns]
 
+sample_name = {}
 sample_name["header"] = []
 for i in all_col:
     if "Normalized" in i:
