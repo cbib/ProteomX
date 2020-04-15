@@ -10,6 +10,7 @@ import os
 import pickle
 
 import paths
+import pandas as pd
 
 
 # TODO a réecrire
@@ -153,3 +154,19 @@ def export_result_to_csv(result_df, output_file):
     except TypeError as e:
         logging.info('Error writing output file:  ' + str(e))
     return True
+
+
+def create_mapping(headers: list, group1: str, group1_name: list, group2: str, group2_name: list) -> pd.DataFrame:
+    '''Input : header structure and 2 groups (name and list of samples for each one)
+       Returns a dataframe for these groups with automatically assigned sample numbers'''
+    if not len(headers) == 3:
+        raise IndexError("Expected 3 column headers, got % s", headers)
+
+    grp1_size = len(group1) + 1
+    grp2_size = len(group2) + 1
+    grp1 = list(zip([group1_name] * grp1_size, list(range(1, grp1_size)), group1))
+    grp2 = list(zip([group2_name] * grp2_size, list(range(1, grp2_size)), group2))
+    df1 = pd.DataFrame(grp1, columns=headers)
+    df2 = pd.DataFrame(grp2, columns=headers)
+
+    return pd.concat([df1, df2])
