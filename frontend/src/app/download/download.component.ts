@@ -1,6 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { DataTablesModule } from 'angular-datatables';
-import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
+import { FormBuilder, FormGroup } from  '@angular/forms';
+import { CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
+import { DelimitorDialogComponent } from '../dialog/delimitor-dialog.component';
+import { MiddlewareService} from '../services/middleware.service';
+import { AlertService} from '../services/alert.service';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -9,33 +14,35 @@ import * as XLSX from 'xlsx';
   styleUrls: ['./download.component.css']
 })
 export class DownloadComponent implements OnInit {
-  private data ={}
-  fileUploaded: File;  
-  fileName:string=""
-  fileUploadProgress: string = null;
-  uploadedFilePath: string = null;
-  error: string;
-  userId: number = 1;
-  storeData:any;
-  worksheet: any;
-  public modified:boolean=false;
+    private data ={}
+    fileUploaded: File;  
+    fileName:string=""
+    fileUploadProgress: string = null;
+    uploadedFilePath: string = null;
+    error: string;
+    userId: number = 1;
+    storeData:any;
+    worksheet: any;
+    public selectedGroup:string;
+    public modified:boolean=false;
+    public form: FormGroup;
+    //parsing CSV
+    private delimitor:string;
+    private csv:any;
+    private headers=[];
+    private headers_select=[];
+    public associated_headers={};
+    private lines=[];
+    uploadResponse = { status: '', message: 0, filePath: '' };
     
-  //parsing CSV
-  private delimitor:string;
-  private csv:any;
-  private headers=[];
-  private headers_select=[];
-  private associated_headers={};
-  private lines=[];
-  uploadResponse = { status: '', message: 0, filePath: '' };
+    constructor(public dialog: MatDialog, public alertService: AlertService, private middlewareService: MiddlewareService){
     
-constructor(private router: Router,private route: ActivatedRoute) 
-{ 
-
-}
-get_headers(){
+     //this.middlewareService.list_directory()
+       }
+    get_headers(){
         return this.headers
     }
+    
     get_associated_headers(){
         return this.associated_headers;
     }
@@ -45,10 +52,10 @@ get_headers(){
     get_lines(){
         return this.lines
     }
-  ngOnInit(): void {
-this.form = this.formBuilder.group({file: ['']});  
-}
-drop(event: CdkDragDrop<string[]>) {
+    ngOnInit(): void {
+        //this.form = this.formBuilder.group({file: ['']});
+    }
+    drop(event: CdkDragDrop<string[]>) {
         moveItemInArray(this.headers_select, event.previousIndex, event.currentIndex);
         this.modified=true
         console.log(this.headers)
@@ -58,6 +65,24 @@ drop(event: CdkDragDrop<string[]>) {
 //        console.log("1#################################################")
 //        console.log(event.target)
 //    }
+    readExcel() {  
+        let fileReader = new FileReader();  
+        fileReader.onload = (e) => {  
+                    this.storeData=fileReader.result;
+                    var data = new Uint8Array(this.storeData);  
+                    var arr = new Array();  
+                    for (var i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);  
+                    var bstr = arr.join(""); 
+                    var book = XLSX.read(bstr, { type: "binary" }); 
+                    var first_sheet_name = book.SheetNames[0];  
+                    this.worksheet = book.Sheets[first_sheet_name]; 
+                    this.csv = XLSX.utils.sheet_to_csv(this.worksheet);  
+                    this.load_csv(this.csv,e) ;
+
+
+        }  
+        fileReader.readAsArrayBuffer(this.fileUploaded);  
+    }
     onFileChange(event) {
         console.log("1#################################################")
         //this.fileUploaded = <File>event.target.files[0];
@@ -92,7 +117,7 @@ drop(event: CdkDragDrop<string[]>) {
                 
             }
             //this.loaded=true
-            this.form.get('file').setValue(this.fileUploaded);
+            //this.form.get('file').setValue(this.fileUploaded);
             
         }
     }
@@ -105,8 +130,6 @@ drop(event: CdkDragDrop<string[]>) {
         }
         fileReader.readAsText(this.fileUploaded); 
     }
-    
-    
     
     load_csv(csvData:any,e:any,delimitor:string=","){
         let allTextLines = csvData.split(/\r|\n|\r/);
@@ -144,6 +167,32 @@ drop(event: CdkDragDrop<string[]>) {
         const data: Blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
           
         //FileSaver.saveAs(data, "CSVFile" + new Date().getTime() + '.csv');  
+    }
+    onSubmit() {
+        console.log(this.lines.length)
+        if (this.lines.length!==0){
+            //console.log(this.form.get('avatar').value)
+            //console.log(this.loaded)
+            const formData = new FormData();
+            formData.append('file', this.form.get('file').value);
+            //let user=JSON.parse(localStorage.getItem('currentUser'));
+            //let parent_id="studies/981995"
+            //this.uploadService.upload2(this.fileName,this.lines,this.headers,this.associated_headers,this.parent_id).pipe(first()).toPromise().then(data => {console.log(data);})
+            //this.router.navigate(['/tree'],{ queryParams: { key: user._key  } });
+        }
+        else{
+            this.alertService.error("you need to select a file")
+        }
+        
+        
+
+        //    this.uploadService.upload(this.lines).subscribe(
+        //      (res) => this.uploadResponse = res,
+        //      (err) => this.error = err
+        //    );
+    }
+    onSelect(values:string, key:string) {
+        
     }
 
 }

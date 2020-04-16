@@ -1,0 +1,10 @@
+npm install @angular/cdk
+npm install rxjs
+npm install schematics-utilities
+ng add angular-datatables
+npm install @angular/material
+npm install child_process
+npm uninstall child_process --save
+npm install child_process --save
+npm install @types/node
+npm i -D @types/webpack-env
