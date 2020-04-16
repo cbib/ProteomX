@@ -9,7 +9,6 @@ const config = require('config');
 const XLSX = require('xlsx')
 const { exec } = require("child_process");
 const uuid = require('uuid-random');
-var express = require("express");
 var app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({extended: false, limit: '50mb'}));
