@@ -8,7 +8,7 @@ import pandas as pd
 import re
 
 
-def get_sample_name(input="data/proteomX/csv/ProteomX_sprint_rawData.csv", output="test/sample_name.json"):
+def get_sample_name(input,output):
     # load df header, extract sample name from "Normalized" column. Write json.
     df = pd.read_csv(input, nrows=0)
 
