@@ -1,20 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#Fonction backend à l'initialisation
+# Fonction backend à l'initialisation
 
 import json
 import pandas as pd
+import re
+
 
 def get_sample_name(input="data/proteomX/csv/ProteomX_sprint_rawData.csv", output="test/sample_name.json"):
     # load df header, extract sample name from "Normalized" column. Write json.
     df = pd.read_csv(input, nrows=0)
 
-    all_col = [i for i in df.columns]
     sample_name = {}
     sample_name["header"] = []
 
-    for i in all_col:
+    for i in df.columns:
         if "Normalized" in i:
             sample_name["header"].append(i.replace("Abundances (Normalized): ", ""))
 
@@ -55,3 +56,50 @@ def write_config_file(input="test/config_file.json", organism="hsapien", group=[
     # make new json_file
     with open(output, 'w+') as json_file:
         json.dump(data_template, json_file, indent=True)
+
+
+##Error
+def is_good_format(input_file):
+    # Check for .xlsx or .xls extension
+    if input_file[-4:] != "xlsx":
+        return "wrong file format"
+    else:
+        return True
+
+def check_for_special_character(input_file):
+    # find special character or space in file name.
+    regex = re.compile('[@_!#$%^&*<>?/\|}{~:] ')
+    if (regex.search(input_file) == None):
+        return True
+    else:
+        return "special character in file name"
+
+def is_file_empty(table):
+    if table.empty:
+        return "empty file"
+    else:
+        return True
+
+def is_abondance_col(table):
+    for i in table.columns:
+        if "Abundances" in i:
+            return True
+    return "no abundances column found"
+
+def enough_prot(table):
+    if table.shape[0] < 2:
+        return "no protein in file"
+    else:
+        return True
+
+
+def check_all_error(input_file, table):
+    all_error = []
+
+    check_func = [is_good_format(input_file), check_for_special_character(input_file), is_file_empty(table),
+                  is_abondance_col(table), enough_prot(table)]
+
+    for i in check_func:
+        if type(i) == str:
+            all_error.append(i)
+    return all_error
