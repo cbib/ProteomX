@@ -17,5 +17,10 @@ COPY frontend/tsconfig.app.json /app/tsconfig.app.json
 COPY frontend/src/ /app/src
 COPY scripts/serve_dev.sh /scripts/serve_dev.sh
 COPY scripts/serve_prod.sh /scripts/serve_prod.sh
+# node server
+WORKDIR /api
+ENV PATH /api/node_modules/.bin:$PATH
+COPY api/package.json /api/package.json
+RUN cd /api && npm install
 ENV PYTHONPATH "${PYTHONPATH}:/backend"
 CMD ["/scripts/serve_dev.sh"]

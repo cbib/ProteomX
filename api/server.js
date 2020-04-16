@@ -15,6 +15,7 @@ const   cors = require('cors');
 //    console.log('Listening on port ' + port);
 //});
 const { exec } = require("child_process");
+const config = require('config');
 
 exec("ls -la", (error, stdout, stderr) => {
     if (error) {
@@ -44,25 +45,28 @@ app.use(cors());
 
 //app.use(express.json({limit: '50mb'}));
 //sapp.use(express.urlencoded({limit: '50mb'}));
-app.listen(4000, () => {
- console.log("Server running on port 4000");
+let appPort = config.get('api_server.port');
+app.listen(appPort, () => {
+ console.log("Server running on port ${appPort}");
 });
 
 
-app.get('/headers', callName); 
-  
-function callName(req, res) { 
-      
-    // Use child_process.spawn method from  
-    // child_process module and assign it 
-    // to variable spawn 
-    var spawn = require("child_process").spawn; 
-    var process = spawn('python',["/Users/benjamin/hello.py"]); 
-    // Takes stdout data from script which executed 
-    // with arguments and send this data to res object 
-    process.stdout.on('data', function(data) { 
-        res.send(data.toString()); 
-    } ) 
+app.get('/headers', callName);
+
+function callName(req, res) {
+    console.log("Received request for call name ")
+
+    // Use child_process.spawn method from
+    // child_process module and assign it
+    // to variable spawn
+    var spawn = require("child_process").spawn;
+    var process = spawn('python',[config.get("helloworld_script")]);
+    console.log(`Spawned subprocess at  ${config.get("helloworld_script")}`)
+    // Takes stdout data from script which executed
+    // with arguments and send this data to res object
+    process.stdout.on('data', function(data) {
+        res.send(data.toString());
+    } )
 }
 
 
@@ -70,19 +74,19 @@ app.post("/upload", (req, res, next) => {
     //var associated_headers=req.associated_headers;
     //var filename = req.filename;
     var book=req.body.book;
-    XLSX.writeFile(book, "/Users/benjamin/Excel.xlsx");
-    fs.writeFileSync('/Users/benjamin/Excel.json', JSON.stringify(req.body.associated_headers));
-    var spawn = require("child_process").spawn; 
-    var process = spawn('python',["/Users/benjamin/hello.py"]); 
+    XLSX.writeFile(book, config.get("data_folder")+"Excel.xlsx");
+    fs.writeFileSync(config.get("data_folder")+"Excel.json", JSON.stringify(req.body.associated_headers));
+    var spawn = require("child_process").spawn;
+    var process = spawn('python',[config.get("helloworld_script")]);
     //res.send({success:true, message:'Everything is good now ',associated_headers: associated_headers });
-    process.stdout.on('data', function(data) { 
-        res.json({data:data.toString()}); 
+    process.stdout.on('data', function(data) {
+        res.json({data:data.toString()});
     } );
-    
+
 //    res.json({associated_headers:req.body.associated_headers});
-    
-    
-    
+
+
+
 });
 
 

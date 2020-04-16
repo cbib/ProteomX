@@ -6,8 +6,8 @@ data
 venv
 backend/__pycache__
 frontend/node_modules
+api/node_modules
 scripts/.snakemake
 backend/__pycache__
-frontend/node_modules
 scripts/.snakemake
 __pycache__
