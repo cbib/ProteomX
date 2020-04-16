@@ -1,33 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#prends le fichier csv en input et génère un fichier json contenant le nom des échantillons.
+#Prends le fichier csv en input et génère un fichier json contenant le nom des échantillons en output.
 
-import json
 import argparse
-import pandas as pd
+import init_fonction
+
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_file", "-i", help='Input file (csv)')
+    parser.add_argument("--input_file", "-i", help='Input file (csv)',
+                        default="data/proteomX/sample/csv/ProteomX_sprint_rawData.csv")
+    parser.add_argument("--output_file", "-o", help="output file (json)", default="backend/test/sample_name_exemple.json")
     args = parser.parse_args()
     return args
 
-args = get_args()
-
-data = pd.read_csv(args.input_file, nrows=0)
-
-all_col = [i for i in data.columns]
-
-sample_name = {}
-sample_name["header"] = []
-for i in all_col:
-    if "Normalized" in i:
-        sample_name["header"].append(i.replace("Abundances (Normalized): ", ""))
-
-if len(sample_name["header"]) == 0:
-    sample_name["header"] = all_col
-
-with open("./config_files/samples_names.json", 'w+') as json_file:
-    json.dump(sample_name, json_file, indent=True)
-
+if __name__ == '__main__':
+    args = get_args()
+    init_fonction.get_sample_name(args.input_file, args.output_file)
