@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Router,ActivatedRoute } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-
 
 @Component({
   selector: 'app-home',

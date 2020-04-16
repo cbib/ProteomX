@@ -40,28 +40,45 @@
                 <li class="nav-item">
                     <a class="nav-link" [routerLink]="['/home']" routerLinkActive="active-link"><i class="fas fa-home"></i> Home</a>
                 </li>
-                <li class="nav-item">
+<!--                <li class="nav-item">
                     <a class="nav-link" [routerLink]="['/download']" routerLinkActive="active-link"><i class="icon-grid"></i> Tables</a>
+                </li>-->
+                <li class="nav-item"><a class="nav-link" [routerLink]="['/history']" routerLinkActive="active-link"> <i class="icon-padnote"></i>User History</a></li>
+                
+                <li><a href="#AnalysisdropdownDropdown" aria-expanded="false" data-toggle="collapse"> <i class="icon-interface-windows"></i>Analysis </a>
+                  <ul id="AnalysisdropdownDropdown" class="collapse list-unstyled ">
+                    <li class="nav-item" ><a class="nav-link" [routerLink]="['/download']" routerLinkActive="active-link">Data import</a></li>
+                    <li class="nav-item" ><a>Data annotation</a></li>
+                    <li class="nav-item"><a>Data exploration</a></li>
+                    <li class="nav-item"><a>Differential expression analysis</a></li>
+                  </ul>
                 </li>
-                <li><a href="charts.html"> <i class="fa fa-bar-chart"></i>Results</a></li>
-                <li><a href="forms.html"> <i class="icon-padnote"></i>Data </a></li>
+                
                 <li><a href="#exampledropdownDropdown" aria-expanded="false" data-toggle="collapse"> <i class="icon-interface-windows"></i>Example analysis </a>
                   <ul id="exampledropdownDropdown" class="collapse list-unstyled ">
-                    <li><a href="#">Data exploration</a></li>
-                    <li><a href="#">Differential expression analysis</a></li>
+                    <li class="nav-item" ><a>Data annotation</a></li>
+                    <li class="nav-item"><a>Data exploration</a></li>
+                    <li class="nav-item"><a>Differential expression analysis</a></li>
                   </ul>
                 </li>
              </ul><span class="heading">Extras</span>
              <ul class="list-unstyled">
-                <li> <a href="#"> <i class="icon-flask"></i>Demo </a></li>
-                <li> <a href="#"> <i class="icon-screen"></i>Demo </a></li>
-                <li> <a href="#"> <i class="icon-mail"></i>Demo </a></li>
-                <li> <a href="#"> <i class="icon-picture"></i>Demo </a></li>
+                <li> <a href="#"> <i class="icon-flask"></i>Publications</a></li>
+                <li> <a href="#"> <i class="icon-screen"></i>FAQ</a></li>
+                <li> <a href="#"> <i class="icon-mail"></i>Download</a></li>
+                <li> <a href="#"> <i class="icon-picture"></i>Releases</a></li>
              </ul>
         </nav>
-        <div id="content" class="container">
-                
-                    <router-outlet></router-outlet>
+        <div class="content-inner">
+          <!-- Page Header-->
+          <section class=" no-padding-bottom">
+            <div class="container-fluid">
+              <router-outlet></router-outlet>
+            </div>
+          </section>
+          <!-- Dashboard Counts Section-->
+        <!--<div id="content" class="container">-->
+
              
         </div>
         

@@ -9,20 +9,26 @@ import { DragDropModule} from '@angular/cdk/drag-drop';
 import { DataTablesModule } from 'angular-datatables';
 import { DelimitorDialogComponent } from './dialog/delimitor-dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
-import { MatCardModule } from '@angular/material/card';
 import { JwtInterceptor, ErrorInterceptor } from './helpers';
 import { platformBrowserDynamic} from '@angular/platform-browser-dynamic';
 import { BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { MiddlewareService} from './services/middleware.service';
 import { AlertService} from './services/alert.service';
 import { ReactiveFormsModule,FormsModule }    from '@angular/forms';
+import { MetadataDescriptionComponent } from './analysis/metadata-description.component';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCardModule} from '@angular/material/card';
+import { HistoryComponent } from './users/history.component'
 
-@NgModule({
+
+    @NgModule({
   declarations: [
     AppComponent,
     DownloadComponent,
     HomeComponent,
-    DelimitorDialogComponent
+    DelimitorDialogComponent,
+    MetadataDescriptionComponent,
+    HistoryComponent
   ],
   imports: [
     BrowserModule,
@@ -30,17 +36,19 @@ import { ReactiveFormsModule,FormsModule }    from '@angular/forms';
     DataTablesModule,
     DragDropModule,
     MatDialogModule,
-    MatCardModule,
     BrowserAnimationsModule,
     ReactiveFormsModule,
     FormsModule,
-    HttpClientModule
+    HttpClientModule,
+    MatButtonModule,
+    MatCardModule
+    
   ],
   entryComponents:[DelimitorDialogComponent],
 
   providers: [MiddlewareService, AlertService, { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
               { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },],
-
+  
   bootstrap: [AppComponent]
 })
 export class AppModule { }
