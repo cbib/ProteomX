@@ -21,7 +21,7 @@ rule all:
     input:
         expand("data/{project}/{version}/csv/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
         expand("data/{project}/{version}/mapped/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
-        expand("data/{project}/{version}/no_na/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
+        expand("data/{project}/{version}/ttest/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
 
 
 
