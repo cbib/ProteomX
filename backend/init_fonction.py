@@ -8,7 +8,7 @@ import pandas as pd
 import re
 
 
-def get_sample_name(input="data/proteomX/csv/ProteomX_sprint_rawData.csv", output="test/sample_name.json"):
+def get_sample_name(input,output):
     # load df header, extract sample name from "Normalized" column. Write json.
     df = pd.read_csv(input, nrows=0)
 
@@ -29,9 +29,14 @@ def get_sample_name(input="data/proteomX/csv/ProteomX_sprint_rawData.csv", outpu
         json.dump(sample_name, json_file, indent=True)
 
 
+<<<<<<< HEAD
 def write_config_file(input="test/config_file.json", organism="hsapien", group=["group1", "group2"], max_na_prot=33,
                       max_na_sample=80,
                       sheet_index=1, reference=0, output="test/new_config_file.json"):
+=======
+def write_config_file(input, output, organism="hsapien", group=["group1", "group2"], max_na=33,
+                      sheet_index=1, reference=0):
+>>>>>>> bbcce9eafd1bd0e57884de401a83f238f6c6aff1
     ### Take pre-write json file (input) . Rewrite json file (output) with given arguments
     with open(input) as json_file:
         data_template = json.load(json_file)
