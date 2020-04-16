@@ -177,30 +177,8 @@ export class MetadataDescriptionComponent implements OnInit {
     }
     
     onSubmit() {
-        console.log(this.lines.length)
-        if (this.lines.length!==0){
-            //console.log(this.form.get('avatar').value)
-            //console.log(this.loaded)
-            const formData = new FormData();
-            formData.append('file', this.form.get('file').value);
-            console.log(this.associated_headers)
-            console.log(this.fileName)
-            console.log(this.book)
-            //let user=JSON.parse(localStorage.getItem('currentUser'));
-            //let parent_id="studies/981995"
-            this.middlewareService.upload(this.fileName,this.associated_headers, this.book).pipe(first()).toPromise().then(data => {console.log(data);})
-            //this.router.navigate(['/tree'],{ queryParams: { key: user._key  } });
-        }
-        else{
-            this.alertService.error("you need to select a file")
-        }
-        
-        
-
-        //    this.uploadService.upload(this.lines).subscribe(
-        //      (res) => this.uploadResponse = res,
-        //      (err) => this.error = err
-        //    );
+        console.log("Nothing to do yet")
+        this.alertService.error("you need to select a file")
     }
     onSelect(values:string, key:string) {
         //console.log(this.selectedOntology)

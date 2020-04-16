@@ -18,8 +18,8 @@ import { ReactiveFormsModule,FormsModule }    from '@angular/forms';
 import { MetadataDescriptionComponent } from './analysis/metadata-description.component';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
-import { HistoryComponent } from './users/history.component'
-
+import { HistoryComponent } from './users/history.component';
+import { AlertModule } from './modules/alert.module';
 
     @NgModule({
   declarations: [
@@ -28,7 +28,8 @@ import { HistoryComponent } from './users/history.component'
     HomeComponent,
     DelimitorDialogComponent,
     MetadataDescriptionComponent,
-    HistoryComponent
+    HistoryComponent,
+    
   ],
   imports: [
     BrowserModule,
@@ -41,7 +42,8 @@ import { HistoryComponent } from './users/history.component'
     FormsModule,
     HttpClientModule,
     MatButtonModule,
-    MatCardModule
+    MatCardModule,
+    AlertModule
     
   ],
   entryComponents:[DelimitorDialogComponent],

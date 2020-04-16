@@ -6,7 +6,6 @@
 </header>
 <section class=" no-padding-bottom">
 <div class="container-fluid">
-
 <div class="form-group">
 <table cdkDropList cdkDropListOrientation="horizontal" class="dataTable table table-hover table-bordered table-responsive-md table-striped text-center" id="datatable" (cdkDropListDropped)="drop($event)">
     <thead>
@@ -54,5 +53,9 @@ Assign second group label:
 </label>
 </div>
  </div>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+       <label class="btn btn-primary">Run analysis<button type="submit" style="display: none; position: right" ></button></label>
+  </form>
 </section>
 
