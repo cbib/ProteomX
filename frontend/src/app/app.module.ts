@@ -9,6 +9,7 @@ import { DragDropModule} from '@angular/cdk/drag-drop';
 import { DataTablesModule } from 'angular-datatables';
 import { DelimitorDialogComponent } from './dialog/delimitor-dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatCardModule } from '@angular/material/card';
 import { JwtInterceptor, ErrorInterceptor } from './helpers';
 import { platformBrowserDynamic} from '@angular/platform-browser-dynamic';
 import { BrowserAnimationsModule} from '@angular/platform-browser/animations';
@@ -16,7 +17,7 @@ import { MiddlewareService} from './services/middleware.service';
 import { AlertService} from './services/alert.service';
 import { ReactiveFormsModule,FormsModule }    from '@angular/forms';
 
-    @NgModule({
+@NgModule({
   declarations: [
     AppComponent,
     DownloadComponent,
@@ -29,6 +30,7 @@ import { ReactiveFormsModule,FormsModule }    from '@angular/forms';
     DataTablesModule,
     DragDropModule,
     MatDialogModule,
+    MatCardModule,
     BrowserAnimationsModule,
     ReactiveFormsModule,
     FormsModule,
@@ -38,7 +40,7 @@ import { ReactiveFormsModule,FormsModule }    from '@angular/forms';
 
   providers: [MiddlewareService, AlertService, { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
               { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },],
-  
+
   bootstrap: [AppComponent]
 })
 export class AppModule { }

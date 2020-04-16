@@ -1,4 +1,5 @@
-SHAREDVOLUMES= -v ${PWD}/data:/data:delegated  -v ${PWD}/config_files:/config_files:delegated -v ${PWD}/scripts:/scripts:delegated -v ${PWD}/backend/:/backend:delegated -v ${PWD}/frontend/src:/app/src:delegated -v ${PWD}/api:/api:delegated
+NGVOLUMES= -v ${PWD}/frontend/src:/app/src:delegated
+SHAREDVOLUMES= -v ${PWD}/data:/data:delegated  -v ${PWD}/config_files:/config_files:delegated -v ${PWD}/scripts:/scripts:delegated -v ${PWD}/backend/:/backend:delegated -v ${PWD}/frontend/src:/app/src:delegated -v ${PWD}/api/src:/api/src:delegated
 ENVVARIABLES= -e PYTHONPATH=/backend:$PYTHONPATH
 # -v ${PWD}/frontend/node_modules:/app/node_modules:delegated
 image:
@@ -6,10 +7,10 @@ image:
 
 serve_ng_dev: image
 	# start the ng container and the node + backend container
-	docker run  -p 4201:4200 --rm example:dev '/scripts/serve_dev.sh'
+	docker run -it ${NGVOLUMES} -p 4201:4200 --rm example:dev '/scripts/serve_dev.sh'
 
 serve_ng_prod: image
-	docker run -p 4201:4200  --rm example:dev '/scripts/serve_prod.sh'
+	docker run -it ${NGVOLUMES} -p 4201:4200  --rm example:dev '/scripts/serve_prod.sh'
 
 serve_api_dev: image
 	# start the ng container and the node + backend container
