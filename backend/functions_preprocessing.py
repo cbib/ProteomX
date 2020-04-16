@@ -62,7 +62,7 @@ def remove_flagged_rows(df: pd.DataFrame, col: str, exclude_code=1) -> pd.DataFr
     return res
 
 
-def na_per_samples(df, values_cols_prefix, max_na_sample_percentage):
+def na_per_samples(df: pd.DataFrame, values_cols_prefix: str, max_na_sample_percentage: int):
     """
     Return dataframe with number and percentage of NaN per samples ; and boolean column with True if
     the sample has to be excluded
@@ -79,7 +79,7 @@ def na_per_samples(df, values_cols_prefix, max_na_sample_percentage):
     return stats_per_sample
 
 
-def export_json_sample(stats_per_sample, out, values_cols_prefix):
+def export_json_sample(stats_per_sample: pd.DataFrame, out: str, values_cols_prefix: str):
     """
         export_json_sample: create (future: update) json with stats on samples :
         1. 'nan_percentage' : percentage of NaN
