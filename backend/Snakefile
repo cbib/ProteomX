@@ -21,7 +21,7 @@ rule all:
     input:
         expand("data/{project}/{version}/csv/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
         expand("data/{project}/{version}/mapped/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
-        expand("data/{project}/{version}/ttest/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
+        expand("data/{project}/{version}/no_na/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
 
 
 
@@ -52,13 +52,14 @@ rule proteomic_preprocessing:
    shell:
         "./backend/preprocessing.py -i {input.data} -o {output.filtered} -p {PROJECT} -v {VERSION}"
 
-rule clean_lines_na:
+rule clean_na:
     input:
         "data/{project}/{version}/preprocessed/{sample}.csv"
     output:
-        "data/{project}/{version}/no_na/{sample}.csv"
+        complete = "data/{project}/{version}/no_na/all_data/{sample}.csv",
+        filtered = "data/{project}/{version}/no_na/{sample}.csv"
     shell:
-        "./backend/clean_na.py -i {input} -o {output} -p {PROJECT} -v {VERSION}"
+        "./backend/clean_na.py -i {input} -oc {output.complete} -of {output.filtered} -p {PROJECT} -v {VERSION}"
 
 rule reduce:
     input:
