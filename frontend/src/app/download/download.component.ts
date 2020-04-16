@@ -57,9 +57,9 @@ export class DownloadComponent implements OnInit {
                     for (var i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);  
                     var bstr = arr.join(""); 
                     this.book = XLSX.read(bstr, { type: "binary" });
-                    //var first_sheet_name = this.book.SheetNames[0];  
-                    //this.worksheet = this.book.Sheets[first_sheet_name]; 
-                    //this.csv = XLSX.utils.sheet_to_csv(this.worksheet);  
+                    var first_sheet_name = this.book.SheetNames[0];  
+                    this.worksheet = this.book.Sheets[first_sheet_name]; 
+                    this.csv = XLSX.utils.sheet_to_csv(this.worksheet);  
                     this.load_csv(this.csv,e) ;
         }  
         fileReader.readAsArrayBuffer(this.fileUploaded);  
