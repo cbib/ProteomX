@@ -7,6 +7,7 @@ import { DelimitorDialogComponent } from '../dialog/delimitor-dialog.component';
 import { MiddlewareService} from '../services/middleware.service';
 import { AlertService} from '../services/alert.service';
 import * as XLSX from 'xlsx';
+import { first } from 'rxjs/operators';
 
 @Component({
   selector: 'app-download',
@@ -19,10 +20,9 @@ export class DownloadComponent implements OnInit {
     fileName:string=""
     fileUploadProgress: string = null;
     uploadedFilePath: string = null;
-    error: string;
-    userId: number = 1;
     storeData:any;
     worksheet: any;
+    book:any;
     public selectedGroup:string;
     public modified:boolean=false;
     public form: FormGroup;
@@ -35,8 +35,7 @@ export class DownloadComponent implements OnInit {
     private lines=[];
     uploadResponse = { status: '', message: 0, filePath: '' };
     
-    constructor(public dialog: MatDialog, public alertService: AlertService, private middlewareService: MiddlewareService){
-    
+    constructor(public dialog: MatDialog, public alertService: AlertService, private middlewareService: MiddlewareService,private formBuilder: FormBuilder){
      //this.middlewareService.list_directory()
        }
     get_headers(){
@@ -52,8 +51,11 @@ export class DownloadComponent implements OnInit {
     get_lines(){
         return this.lines
     }
+    get_files(){
+        
+    }
     ngOnInit(): void {
-        //this.form = this.formBuilder.group({file: ['']});
+        this.form = this.formBuilder.group({file: ['']});
     }
     drop(event: CdkDragDrop<string[]>) {
         moveItemInArray(this.headers_select, event.previousIndex, event.currentIndex);
@@ -73,21 +75,17 @@ export class DownloadComponent implements OnInit {
                     var arr = new Array();  
                     for (var i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);  
                     var bstr = arr.join(""); 
-                    var book = XLSX.read(bstr, { type: "binary" }); 
-                    var first_sheet_name = book.SheetNames[0];  
-                    this.worksheet = book.Sheets[first_sheet_name]; 
+                    this.book = XLSX.read(bstr, { type: "binary" });
+                    var first_sheet_name = this.book.SheetNames[0];  
+                    this.worksheet = this.book.Sheets[first_sheet_name]; 
                     this.csv = XLSX.utils.sheet_to_csv(this.worksheet);  
                     this.load_csv(this.csv,e) ;
-
-
         }  
         fileReader.readAsArrayBuffer(this.fileUploaded);  
     }
-    onFileChange(event) {
+    onBrowse(event) {
         console.log("1#################################################")
         //this.fileUploaded = <File>event.target.files[0];
-        
-        
         if (event.target.files.length > 0) {
             
             this.uploadResponse.status='progress'
@@ -105,14 +103,9 @@ export class DownloadComponent implements OnInit {
                     console.log(this.delimitor);
                     this.read_csv(this.delimitor) 
                 };
-            });
-                
-                
-                
-                
-                
+            }); 
             }
-            else{               
+            else{  
                 this.readExcel();
                 
             }
@@ -150,7 +143,7 @@ export class DownloadComponent implements OnInit {
         for (var i = 0; i < this.headers.length; i++){
             
             
-            this.associated_headers[this.headers[i]]={selected:false,associated_term_id:"",is_time_values:false}
+            this.associated_headers[this.headers[i]]={selected:false,associated_group:""}
             if (i===0){
                 this.headers_select.push('time')
             }
@@ -168,6 +161,7 @@ export class DownloadComponent implements OnInit {
           
         //FileSaver.saveAs(data, "CSVFile" + new Date().getTime() + '.csv');  
     }
+    
     onSubmit() {
         console.log(this.lines.length)
         if (this.lines.length!==0){
@@ -175,9 +169,12 @@ export class DownloadComponent implements OnInit {
             //console.log(this.loaded)
             const formData = new FormData();
             formData.append('file', this.form.get('file').value);
+            console.log(this.associated_headers)
+            console.log(this.fileName)
+            console.log(this.book)
             //let user=JSON.parse(localStorage.getItem('currentUser'));
             //let parent_id="studies/981995"
-            //this.uploadService.upload2(this.fileName,this.lines,this.headers,this.associated_headers,this.parent_id).pipe(first()).toPromise().then(data => {console.log(data);})
+            this.middlewareService.upload(this.fileName,this.associated_headers, this.book).pipe(first()).toPromise().then(data => {console.log(data);})
             //this.router.navigate(['/tree'],{ queryParams: { key: user._key  } });
         }
         else{
@@ -192,7 +189,10 @@ export class DownloadComponent implements OnInit {
         //    );
     }
     onSelect(values:string, key:string) {
-        
+        //console.log(this.selectedOntology)
+        console.log(values)
+        console.log(key)  
+        this.associated_headers[key]={selected:true, associated_group:values}
     }
 
 }

@@ -1,4 +1,4 @@
-
+<!--<alert></alert>-->
 <!--<div *ngIf= "mode==='create'" >-->
   <h1>Upload your Data files!</h1>
 <!--  <div *ngIf="error">
@@ -14,7 +14,7 @@
   </div>
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <div>
-      <label class="btn btn-default btn-file">Browse <input type="file" style="display: none;"  accept=".xlsx,.csv"  (change)="onFileChange($event)"></label>
+      <label class="btn btn-default btn-file">Browse <input type="file" style="display: none;"  accept=".xlsx,.csv"  (change)="onBrowse($event)"></label>
       <button class="btn btn-default btn-info" type="submit">Upload</button>
       </div>
       <!--<label class="btn btn-default btn-file">Upload <button type="submit"></button></label>--> 
@@ -45,7 +45,31 @@
  </pre>
  -->
  
- 
+<table cdkDropList cdkDropListOrientation="horizontal" class="dataTable table table-hover table-bordered table-responsive-md table-striped text-center" id="datatable" (cdkDropListDropped)="drop($event)">
+    <thead>
+<!--    <tr>-->
+        <!--<th scope="col"  style="font-size:10px;text-align: center; "><i class="fas fa-cogs"></i></th>-->
+    <!--</tr>-->   
+        
+    <tr>
+        <th style="font-size:10px;text-align: center; cursor: move;">Filename</th>
+        <th style="font-size:10px;text-align: center; cursor: move;">Creation Date</th>
+
+    </tr>
+    </thead>
+<!--    <tbody *ngIf="get_lines().length<100">
+        <tr *ngFor="let l of get_lines() ; index as j;">
+         {{l}}
+        <td  style="font-size:14px;" scope="row" *ngFor="let h_key of l ; index as k;" >{{h_key}}</td>
+    </tr>
+    </tbody>-->
+    <tbody>
+        <tr *ngFor="let l of get_files()| slice:0:100 ; index as j;">
+         {{l}}
+        <td  style="font-size:14px;" scope="row" *ngFor="let h_key of l ; index as k;" >{{h_key}}</td>
+    </tr>
+    </tbody>
+</table>
 
 <!--<cdk-virtual-scroll-viewport itemSize="24"  style="height: 500px; min-width: 100%; " class="cdk-virtual-scroll-viewport cdk-virtual-scroll-orientation-vertical cdk-virtual-scroll-orientation-horizontal">-->
 <table cdkDropList cdkDropListOrientation="horizontal" class="dataTable table table-hover table-bordered table-responsive-md table-striped text-center" id="datatable" (cdkDropListDropped)="drop($event)">
@@ -97,11 +121,11 @@
             <th scope="col" *ngFor="let key of get_headers() ; index as i;"  style="font-size:10px;text-align: center;">
 
                 <span *ngIf="i>0 && associated_headers[key].selected" style="display:inline-block; margin-left: 10px;"> 
-                    {{associated_headers[key].associated_term_id}} 
+                    {{associated_headers[key].associated_group}} 
                 </span>
 
                 <span *ngIf="i==0 && associated_headers[key].selected" style="display:inline-block; margin-left: 10px;"> 
-                    {{associated_headers[key].associated_term_id}}
+                    {{associated_headers[key].associated_group}}
                 </span>
             </th>
         </tr>

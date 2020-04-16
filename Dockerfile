@@ -6,6 +6,11 @@ RUN pip install -r /backend/requirements.txt
 COPY frontend/package.json /app/package.json
 RUN npm install
 RUN npm install -g @angular/cli@7.3.9
+RUN npm install -g @angular/cdk
+RUN npm install -g rxjs
+RUN npm install -g schematics-utilities
+RUN npm install -g @angular/material
+RUN npm install -g angular-datatables
 COPY frontend/angular.json /app/angular.json
 COPY frontend/tsconfig.spec.json /app/tsconfig.spec.json
 COPY frontend/tsconfig.app.json /app/tsconfig.app.json
