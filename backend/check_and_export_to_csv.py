@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# raw data (xlsx) en input. Génère un fichier json d'erreur.
+# input : xlsx
+# output : log d'erreur (-er), sample name (-s), fichier au format xls (-o)
 
 import init_fonction
 import argparse
@@ -20,6 +21,8 @@ def get_args():
                         default="data/proteomX/sample/log/error_file_exemple.json")
     parser.add_argument("--output_file", "-o", help="output file (csv)",
                         default="data/proteomX/sample/csv/ProteomX_sprint_rawData.csv")
+    parser.add_argument("--output_sample_name", "-s", help="output file with sample name (json)",
+                        default="data/proteomX/sample/log/sample_name.json")
     args = parser.parse_args()
     return args
 
@@ -53,4 +56,5 @@ if __name__ == '__main__':
     with open(args.error_file, 'w+') as json_file:
         json.dump(errors, json_file, indent=True)
 
+    init_fonction.get_sample_name(df, args.output_sample_name)
     h.export_result_to_csv(df, args.output_file)

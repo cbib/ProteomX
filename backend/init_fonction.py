@@ -8,9 +8,8 @@ import pandas as pd
 import re
 
 
-def get_sample_name(input,output):
+def get_sample_name(df,output):
     # load df header, extract sample name from "Normalized" column. Write json.
-    df = pd.read_csv(input, nrows=0)
 
     sample_name = {}
     sample_name["header"] = []
