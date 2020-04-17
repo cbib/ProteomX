@@ -51,4 +51,23 @@ app.post("/upload", (req, res, next) => {
 });
 
 
+// This function use spawnSync that allows to wait for script to finish.
+// Output json file is read in Sync mode and content is returned.
+app.get('/get_headers/', (req, res) => {
+    var file_uuid=req.query.file_uuid;
+    const {spawnSync} = require('child_process');
+    const path = require('path');
+    function runScript(){
+        return spawnSync('python', ["/Users/benjamin/hello.py"
+        ]);
+    }
+    const subprocess = runScript();
+    var data =fs.readFileSync("/Users/benjamin/"+file_uuid+".json");
+    //console.log(data.toString());
+    // print output of script
+    res.send(data.toString());
+    //res.send(subprocess.stdout.toString());
+});
+
+
 
