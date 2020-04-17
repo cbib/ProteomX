@@ -29,14 +29,10 @@ def get_sample_name(input,output):
         json.dump(sample_name, json_file, indent=True)
 
 
-<<<<<<< HEAD
 def write_config_file(input="test/config_file.json", organism="hsapien", group=["group1", "group2"], max_na_prot=33,
                       max_na_sample=80,
                       sheet_index=1, reference=0, output="test/new_config_file.json"):
-=======
-def write_config_file(input, output, organism="hsapien", group=["group1", "group2"], max_na=33,
-                      sheet_index=1, reference=0):
->>>>>>> bbcce9eafd1bd0e57884de401a83f238f6c6aff1
+
     ### Take pre-write json file (input) . Rewrite json file (output) with given arguments
     with open(input) as json_file:
         data_template = json.load(json_file)
@@ -117,13 +113,23 @@ def check_dtypes(table):
             else :
                 return True
 
-def check_all_error(input_file, table):
+def check_file_name(input_file):
+    all_error = []
+    check_func = [is_good_format(input_file), check_for_special_character(input_file)]
+
+    for i in check_func:
+        if type(i) == str:
+            all_error.append(i)
+    return all_error
+
+def check_data_error(table):
     all_error = []
 
-    check_func = [is_good_format(input_file), check_for_special_character(input_file), is_file_empty(table),
+    check_func = [is_file_empty(table),
                   is_abondance_col(table), enough_prot(table), find_accession(table), check_dtypes(table)]
 
     for i in check_func:
         if type(i) == str:
             all_error.append(i)
+
     return all_error
