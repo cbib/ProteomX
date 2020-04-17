@@ -2,6 +2,7 @@ import os
 
 PROJECT = config["project"]
 VERSION = config["analysis_name"]
+TARGET = config["target"]
 
 def get_file_name(folder, extension):
     path_to_data = "data/{}/{}/{}/".format(PROJECT, VERSION, folder)
@@ -19,9 +20,8 @@ print(SAMPLES)
 
 rule all:
     input:
-        expand("data/{project}/{version}/mapped/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
-        expand("data/{project}/{version}/ttest/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
-
+        expand("data/{project}/{version}/{target}/{sample}.csv",
+               project = PROJECT, version=VERSION, sample=SAMPLES, target=TARGET)
 
 
 rule mapping:
@@ -42,9 +42,19 @@ rule proteomic_preprocessing:
    shell:
         "./backend/preprocessing.py -i {input.data} -o {output.filtered} -p {PROJECT} -v {VERSION}"
 
+
+rule gene_name:
+   input:
+        data = "data/{project}/{version}/preprocessed/{sample}.csv"
+   output:
+        filtered = "data/{project}/{version}/gene_name/{sample}.csv"
+   shell:
+        "./backend/gene_name_gP.py -i {input.data} -o {output.filtered} -p {PROJECT} -v {VERSION}"
+
+
 rule clean_na:
     input:
-        "data/{project}/{version}/preprocessed/{sample}.csv"
+        "data/{project}/{version}/gene_name/{sample}.csv"
     output:
         complete = "data/{project}/{version}/no_na/all_data/{sample}.csv",
         filtered = "data/{project}/{version}/no_na/{sample}.csv"
@@ -71,10 +81,9 @@ rule overlap:
     input:
         data ="data/{project}/{version}/log2FC/{sample}.csv",
     output:
-        data = "data/{project}/{version}/overlap/{sample}.csv",
-        fig = touch("data/{project}/{version}/Figures/overlap_distribution/{sample}")
+        data = "data/{project}/{version}/overlap/{sample}.csv"
     shell:
-        "./backend/overlap.py -i {input.data} -o {output.data} -f {output.fig} -p {PROJECT} -v {VERSION}"
+        "./backend/overlap.py -i {input.data} -o {output.data} -p {PROJECT} -v {VERSION}"
 
 rule ttest:
     input:
