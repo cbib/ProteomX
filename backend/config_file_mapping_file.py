@@ -36,11 +36,6 @@ def get_args():
 
 if __name__ == '__main__':
 
-    #update config_file
-    args = get_args()
-    init_fonction.write_config_file(input=args.json_template, organism=args.organism, group=args.group,
-                                    max_na_prot=args.max_na_percent_prot, max_na_sample=args.max_na_percent_sample,
-                                    reference=args.reference, output=args.output_file)
 
     #créer le fichier de mapping
     if args.write_mapping:
@@ -48,3 +43,8 @@ if __name__ == '__main__':
         df = helpers.create_mapping(headers, args.group1, args.group[0], args.group2, args.group[1])
         df.to_csv(args.mapping_file, sep='\t', index=False)
 
+    #update config_file
+    args = get_args()
+    init_fonction.write_config_file(input=args.json_template, organism=args.organism, group=args.group,
+                                    max_na_prot=args.max_na_percent_prot, max_na_sample=args.max_na_percent_sample,
+                                    reference=args.reference, output=args.output_file)
