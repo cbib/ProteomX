@@ -14,6 +14,7 @@ import re
 import numpy as np
 import collections
 import json
+from loguru import logger
 
 
 def na_per_group(df: pd.DataFrame, list_group_prefix: list, values_cols_prefix: str):
@@ -41,7 +42,6 @@ def na_per_group(df: pd.DataFrame, list_group_prefix: list, values_cols_prefix: 
 
         # Save results aside
         stats_per_groups = pd.concat([stats_per_groups, df[column_to_add_name]], axis=1)
-
     return df, stats_per_groups
 
 
@@ -49,10 +49,11 @@ def flag_row_with_nas(df: pd.DataFrame, stats_per_groups:pd.DataFrame, max_na_gr
     # Do we have more samples than the threshold (percentage)
     problematic_groups = pd.concat([stats_per_groups.loc[:, col] >= max_na_group_percentage
                                     for col in stats_per_groups.columns.tolist()], axis=1)
-
+    logger.info("Problematic groups: ", problematic_groups)
     # Which one are ok in all groups
     to_keep = problematic_groups.sum(axis=1) == 0
     df['exclude_na'] = np.where(to_keep == True, 0, 1)
+
     return df
 
 
@@ -62,7 +63,7 @@ def remove_flagged_rows(df: pd.DataFrame, col: str, exclude_code=1) -> pd.DataFr
     return res
 
 
-def na_per_samples(df, values_cols_prefix, max_na_sample_percentage):
+def na_per_samples(df: pd.DataFrame, values_cols_prefix: str, max_na_sample_percentage: int):
     """
     Return dataframe with number and percentage of NaN per samples ; and boolean column with True if
     the sample has to be excluded
@@ -79,12 +80,12 @@ def na_per_samples(df, values_cols_prefix, max_na_sample_percentage):
     return stats_per_sample
 
 
-def export_json_sample(stats_per_sample, out, values_cols_prefix):
+def export_json_sample(stats_per_sample: pd.DataFrame, out: str, values_cols_prefix: str):
     """
         export_json_sample: create (future: update) json with stats on samples :
         1. 'nan_percentage' : percentage of NaN
         2. 'qc' : True if the sample NaN number is below the threshold
-        3. 'user' : True if the sample was selected by the user
+        3. 'user' (future) : True if the sample was selected by the user
     """
 
     # Strip prefix used for analysis in index name
@@ -94,7 +95,6 @@ def export_json_sample(stats_per_sample, out, values_cols_prefix):
     for sample in stats_per_sample.index.values:
         d[sample]["nan_percentage"] = stats_per_sample.loc[sample, "nan_percentage"]
         d[sample]["qc"] = bool(~stats_per_sample.loc[sample, "to_exclude"])
-
 
     with open(out, 'w+') as json_file:
         json.dump(d, json_file)
