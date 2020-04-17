@@ -41,7 +41,6 @@ def na_per_group(df: pd.DataFrame, list_group_prefix: list, values_cols_prefix: 
 
         # Save results aside
         stats_per_groups = pd.concat([stats_per_groups, df[column_to_add_name]], axis=1)
-
     return df, stats_per_groups
 
 
@@ -49,10 +48,11 @@ def flag_row_with_nas(df: pd.DataFrame, stats_per_groups:pd.DataFrame, max_na_gr
     # Do we have more samples than the threshold (percentage)
     problematic_groups = pd.concat([stats_per_groups.loc[:, col] >= max_na_group_percentage
                                     for col in stats_per_groups.columns.tolist()], axis=1)
-
+    print(problematic_groups)
     # Which one are ok in all groups
     to_keep = problematic_groups.sum(axis=1) == 0
     df['exclude_na'] = np.where(to_keep == True, 0, 1)
+    print(df.head())
     return df
 
 
