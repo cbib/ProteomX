@@ -29,8 +29,14 @@ def get_sample_name(input,output):
         json.dump(sample_name, json_file, indent=True)
 
 
+<<<<<<< HEAD
+def write_config_file(input="test/config_file.json", organism="hsapien", group=["group1", "group2"], max_na_prot=33,
+                      max_na_sample=80,
+                      sheet_index=1, reference=0, output="test/new_config_file.json"):
+=======
 def write_config_file(input, output, organism="hsapien", group=["group1", "group2"], max_na=33,
                       sheet_index=1, reference=0):
+>>>>>>> bbcce9eafd1bd0e57884de401a83f238f6c6aff1
     ### Take pre-write json file (input) . Rewrite json file (output) with given arguments
     with open(input) as json_file:
         data_template = json.load(json_file)
@@ -48,7 +54,8 @@ def write_config_file(input, output, organism="hsapien", group=["group1", "group
     data_template["convert_to_csv"]["worksheet"] = sheet_index
 
     # replace max_na_percent value
-    data_template["clean_na"]["max_na_percent"] = max_na
+    data_template["clean_na"]["max_na_percent_proteins"] = max_na_prot
+    data_template["clean_na"]["max_na_percent_samples"] = max_na_sample
 
     # rename reference groupe
     data_template["ratio"]["reference"] = group[reference]
@@ -66,6 +73,7 @@ def is_good_format(input_file):
     else:
         return True
 
+
 def check_for_special_character(input_file):
     # find special character or space in file name.
     regex = re.compile('[@_!#$%^&*<>?/\|}{~:] ')
@@ -74,11 +82,13 @@ def check_for_special_character(input_file):
     else:
         return "special character in file name"
 
+
 def is_file_empty(table):
     if table.empty:
         return "empty file"
     else:
         return True
+
 
 def is_abondance_col(table):
     for i in table.columns:
@@ -86,18 +96,32 @@ def is_abondance_col(table):
             return True
     return "no abundances column found"
 
+
 def enough_prot(table):
     if table.shape[0] < 2:
         return "no protein in file"
     else:
         return True
 
+def find_accession(table):
+    if "Accession" not in table.columns:
+        return "no accession column found"
+    else:
+        return True
+
+def check_dtypes(table):
+    for i in table.columns:
+        if "Abundances" in i:
+            if table[i].dtypes != float:
+                return "Abundance column values are not float"
+            else :
+                return True
 
 def check_all_error(input_file, table):
     all_error = []
 
     check_func = [is_good_format(input_file), check_for_special_character(input_file), is_file_empty(table),
-                  is_abondance_col(table), enough_prot(table)]
+                  is_abondance_col(table), enough_prot(table), find_accession(table), check_dtypes(table)]
 
     for i in check_func:
         if type(i) == str:

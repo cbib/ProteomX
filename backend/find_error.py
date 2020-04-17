@@ -50,5 +50,7 @@ if __name__ == '__main__':
     error_dict = {}
     error_dict["errors"] = errors
 
+    init_fonction.check_dtypes(df)
+
     with open(args.error_file, 'w+') as json_file:
         json.dump(error_dict, json_file, indent=True)
