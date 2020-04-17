@@ -26,4 +26,5 @@ The docker image is defined in the main `Dockerfile`.
 	1. `scripts` -> `/scripts/` where helper maintenance scripts are stored
 	1. `backend` -> `/backend/` where the (python) backend code is stored
 	1. `frontend/src` -> `/app/src/` where the (angular) fronted code is stored
+	1. `api/src` -> `/api/src/` where the (node) API code is stored 
 
