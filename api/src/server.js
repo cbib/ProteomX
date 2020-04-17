@@ -37,7 +37,7 @@ function callName(req, res) {
     // with arguments and send this data to res object
     process.stdout.on('data', function(data) {
         res.send(data.toString());
-    } )
+    })
 }
 
 
@@ -48,6 +48,25 @@ app.post("/upload", (req, res, next) => {
     XLSX.writeFile(book, config.get("data_folder")+unique_id+".xlsx");
     fs.writeFileSync(config.get("data_folder")+unique_id+".json", JSON.stringify(req.body.associated_headers));
     res.send({associated_headers: req.body.associated_headers, uuid:unique_id});
+});
+
+
+// This function use spawnSync that allows to wait for script to finish.
+// Output json file is read in Sync mode and content is returned.
+app.get('/get_headers/', (req, res) => {
+    var file_uuid=req.query.file_uuid;
+    const {spawnSync} = require('child_process');
+    const path = require('path');
+    function runScript(){
+        return spawnSync('python', ["/Users/benjamin/hello.py"
+        ]);
+    }
+    const subprocess = runScript();
+    var data =fs.readFileSync("/Users/benjamin/"+file_uuid+".json");
+    //console.log(data.toString());
+    // print output of script
+    res.send(data.toString());
+    //res.send(subprocess.stdout.toString());
 });
 
 

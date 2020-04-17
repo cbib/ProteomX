@@ -17,7 +17,6 @@
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
      
       <label class="btn btn-default btn-file">Browse <input type="file" style="display: none;"  accept=".xlsx,.csv"  (change)="onBrowse($event)"></label>
-       <label class="btn btn-default btn-file">Upload<button type="submit" style="display: none;" ></button></label>
   </form>
         
 
@@ -54,6 +53,15 @@
     </tr>
     </tbody>
 </table>
+ 
+ <form [formGroup]="form" (ngSubmit)="onSubmit()">
+     
+       <label *ngIf="loaded"  class="btn btn-default btn-file">Upload<button type="submit" style="display: none;" ></button></label>
+  </form>
+
  </div>
+    <!--<div class="mat-app-background basic-container">-->
+     <!--<app-stepper-overview>loading</app-stepper-overview>-->
+    <!--</div>-->
 </section>
 

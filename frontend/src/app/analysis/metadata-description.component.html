@@ -3,9 +3,11 @@
     <div class="container-fluid">
        <h2 class="no-margin-bottom">Describe metadata</h2>
     </div>
+    
 </header>
 <section class=" no-padding-bottom">
 <div class="container-fluid">
+    <alert></alert>
 <div class="form-group">
 <table cdkDropList cdkDropListOrientation="horizontal" class="dataTable table table-hover table-bordered table-responsive-md table-striped text-center" id="datatable" (cdkDropListDropped)="drop($event)">
     <thead>
@@ -24,7 +26,7 @@
         </th>
     </tr>
         <tr>
-            <th scope="col" *ngFor="let key of get_headers() ; index as i;"  style="font-size:10px;text-align: center;">
+            <th scope="col" *ngFor="let key of get_associated_headers() ; index as i;"  style="font-size:10px;text-align: center;">
 
                 <span *ngIf=" associated_headers[key].selected" style="display:inline-block; margin-left: 10px;"> 
                     {{associated_headers[key].associated_group}} 

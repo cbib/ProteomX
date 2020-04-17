@@ -16,8 +16,11 @@ import { first } from 'rxjs/operators';
   styleUrls: ['./metadata-description.component.css']
 })
 export class MetadataDescriptionComponent implements OnInit {
-    @Input() associated_headers:{};
+    @Input() data_sample_name:{};
     @Input() uuid:string
+    @Input() error:{}
+    public error_message:string=""
+    public associated_headers:{}
     private data ={}
     fileUploaded: File;  
     fileName:string=""
@@ -45,11 +48,28 @@ export class MetadataDescriptionComponent implements OnInit {
     
     constructor(private route: ActivatedRoute, private router: Router,  public dialog: MatDialog, public alertService: AlertService, private middlewareService: MiddlewareService,private formBuilder: FormBuilder){
      this.route.queryParams.subscribe(
-            params => {        
-                this.associated_headers=JSON.parse(params['associated_headers']);
-                this.headers=Object.keys(this.associated_headers)
+            params => {    
+                //console.log(params)    
+                console.log(params['data_sample_name'])
+                var sample_names=JSON.parse(params['data_sample_name']);
+                var err=JSON.parse(params['error']);
+                var sheet_error=err['sheet_error']
+               
+                this.headers=sample_names['header'];
+                this.error_message=sample_names['error']
+                console.log(sample_names)
+                console.log(sample_names['header'])
+                console.log(err)
+                console.log(sheet_error)
+                
                 this.uuid=params['uuid']
-                console.log(this.uuid)
+                if (this.error_message === "No Normalized column found"){
+                    console.log(this.error_message)
+                    this.alertService.info(this.error_message)
+                } 
+                
+                //console.log(this.headers)
+                //console.log(params['error'])
             
             }
         );
@@ -72,6 +92,7 @@ export class MetadataDescriptionComponent implements OnInit {
     }
     ngOnInit(): void {
         this.form = this.formBuilder.group({file: ['']});
+        
     }
     drop(event: CdkDragDrop<string[]>) {
         moveItemInArray(this.headers_select, event.previousIndex, event.currentIndex);
@@ -166,7 +187,6 @@ export class MetadataDescriptionComponent implements OnInit {
             else{
                 this.headers_select.push('others')
             }
-            
         }
         console.log(this.associated_headers)
     }

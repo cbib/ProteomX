@@ -1,0 +1,40 @@
+./Reload.sh > angular_serve_proteomix.log &
+
+La structure angular est la suivante
+Anguylar/src/
+index.html
+
+Angular/src/app
+Principale composant (app-root)
+C'ets dans c composant que se situe le contenu d'index.html
+App.component.html
+App.component.ts
+App.component.css
+
+App-routing-modules.ts
+Ce fichier parametre les redirections
+
+App.module.ts
+Ce fichier contient et référence les différents composants, modules, services.
+
+Pour générer un composant
+On se place dans le répertoire app/
+
+[user app]$ ng g c home/home --flat
+CREATE src/app/home/home.component.css (0 bytes)
+CREATE src/app/home/home.component.html (19 bytes)
+CREATE src/app/home/home.component.spec.ts (614 bytes)
+CREATE src/app/home/home.component.ts (267 bytes)
+
+Chaque composant est automatiquement ajouté au fichier app.module.ts
+
+Mise en place de la page index.html.
+La page index.html renvoie sur le composant app-root.
+
+Mise en place d'un menu vertical et d'un menu horizontale
+Fournir contenu page home
+Ajouter logo dans page home
+
+Mise en place de la page de download
+
+

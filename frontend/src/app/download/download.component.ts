@@ -21,6 +21,7 @@ export class DownloadComponent implements OnInit {
     fileName:string=""
     worksheet: any;
     book:any;
+    loaded:boolean=false;
     public selectedGroup:string;
     public modified:boolean=false;
     public form: FormGroup;
@@ -130,6 +131,8 @@ export class DownloadComponent implements OnInit {
             
         }
         console.log(this.associated_headers)
+        this.loaded=true;
+        
     }
       
 //    readAsCSV() {  
@@ -152,8 +155,9 @@ export class DownloadComponent implements OnInit {
             this.middlewareService.upload(this.fileName,this.associated_headers, this.book).pipe(first()).toPromise().then(
                 data => {
                     console.log(data);
-                    this.router.navigate(['/metadata'],{ queryParams: { associated_headers: JSON.stringify(data.associated_headers) ,uuid:data.uuid } });})
-            
+                    this.router.navigate(['/metadata'],{ queryParams: { error: data.error ,uuid:data.uuid , data_sample_name:data.data_sample_name} });})
+                    //this.router.navigate(['/metadata'],{ queryParams: { associated_headers: JSON.stringify(data.associated_headers) ,uuid:data.uuid , data_sample_name:data.data_sample_name} });})
+
         }
         else{
             this.alertService.error("you need to select a file")
