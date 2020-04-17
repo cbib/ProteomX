@@ -4,17 +4,14 @@
 
 
 """
-Compute statistical tests : Student, Welch or Wilcoxon (Mann-Whitney) tests
+Compute statistical tests : Student or Welch test. Test choosen with "equal_var" parameter in the config file.
 """
 
 import argparse
 import pandas as pd
-import statsmodels.stats.multitest as smm
 from loguru import logger
-from scipy import stats
 import helpers as h
-import numpy as np
-
+import functions_analysis as fa
 
 
 def get_args():
@@ -26,44 +23,6 @@ def get_args():
 
     args = parser.parse_args()
     return args
-
-
-def compute_p_value(df, id_col):
-
-    reference = rule_params["ttest"]["reference"]
-    equal_var = rule_params["ttest"]["equal_var"]
-
-    ttest_df = pd.DataFrame(columns=[id_col, 'pvalue'], index=data_df.index)
-
-    values_df = df.filter(regex=rule_params["all"]["values_cols_prefix"])
-
-    reference_columns = [x for x in values_df.columns.values if reference in x]
-    condition_columns = [x for x in values_df.columns.values if reference not in x]
-
-    for i in df.index.values:
-        reference_values = np.array(df.iloc[i][reference_columns], dtype=float)
-        condition_values = np.array(df.iloc[i][condition_columns], dtype=float)
-
-        # two-tailed t-test
-        stat, p_value = stats.ttest_ind(condition_values, reference_values, equal_var=equal_var, nan_policy='omit')
-
-        ttest_df.loc[i] = [df.loc[i][id_col], p_value]
-
-    return ttest_df
-
-
-def compute_p_adjusted(df):
-    correction_method = rule_params["ttest"]["correction_method"]
-
-    rej, pval_corr = smm.multipletests(df['pvalue'].values, alpha=float('0.05'), method=correction_method)[:2]
-    df['padj'] = pval_corr
-    return df
-
-
-def merge_and_sort_results(df, padj_df, id_col):
-    res = df.merge(padj_df, how='left', on=id_col)
-    res = res.sort_values(rule_params["ttest"]["sort_res_by"])
-    return res
 
 
 def log_significant_protein_number(res):
@@ -80,10 +39,10 @@ if __name__ == "__main__":
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
 
     id_col = rule_params["all"]["id_col"]
-
-    ttest_pval = compute_p_value(data_df, id_col)
-    ttest_padj = compute_p_adjusted(ttest_pval)
-    result_df = merge_and_sort_results(data_df, ttest_padj, id_col)
+    groups = h.get_data_subset(data_df, rule_params['all']['values_cols_prefix'], rule_params['ratio']['reference'])
+    ttest_pval = fa.compute_p_value(data_df, groups[0], groups[1], id_col, rule_params["ttest"]["equal_var"])
+    ttest_padj = fa.compute_p_adjusted(ttest_pval, rule_params["ttest"]["correction_method"])
+    result_df = fa.merge_and_sort_results(data_df, ttest_padj, id_col, rule_params["ttest"]["sort_res_by"])
 
     log_significant_protein_number(result_df)
 

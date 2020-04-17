@@ -1,0 +1,98 @@
+{
+  "all": {
+    "metadata_col": [
+      "Accession",
+      "Description"
+    ],
+    "values_cols_prefix": "VAL",
+    "id_col": "Accession"
+  },
+  "convert_to_csv": {
+    "worksheet": "Bilan_Protein",
+    "values_to_replace": null,
+    "index_col": 0,
+    "rows_to_skip": null
+  },
+  "mapping": {
+    "col_label": "original label",
+    "col_for_mapping": [
+      "group",
+      "sample",
+      "replicate"
+    ],
+    "path_to_json_mapping": "mapping/samples_json/"
+  },
+  "preprocessing": {
+    "unique_peptides": {
+      "column_id": "# Unique Peptides",
+      "to_discard": [
+        0,
+        1
+      ]
+    },
+    "contaminant": {
+      "column_id": "Contaminant",
+      "to_discard": [
+        1
+      ]
+    },
+    "master_protein": {
+      "column_id": "Master",
+      "unique": "Master Protein"
+    }
+  },
+  "reduce": {
+    "subsets": "all_data",
+    "ddof": 0
+  },
+  "clean_na": {
+    "on": [
+      "group",
+      "sample"
+    ],
+    "max_na_percent": 33,
+    "keep_specific": false
+  },
+  "ratio": {
+    "reference": "O60"
+  },
+  "overlap": {
+    "subset": [
+      "O60",
+      "VescalaginC60"
+    ],
+    "method": "symmetric"
+  },
+  "boxplot_abundances": {
+    "sort_by": "pvalue",
+    "top": 10,
+    "reduce": false,
+    "xlabel": "\nProtein",
+    "ylabel": "Reduced expression level",
+    "subset": [
+      "O60",
+      "VescalaginC60"
+    ],
+    "subset_name": {
+      "O60": "Control",
+      "VescalaginC60": "Vescalagin - C60"
+    },
+    "nb_plot": null,
+    "protein_per_plot": 5,
+    "palette": {
+      "Control": "lightseagreen",
+      "VIH": "tomato"
+    },
+    "stripplot": false,
+    "id_is_numeric": false
+  },
+  "gene_name": {
+    "organism": "hsapiens",
+    "gene_name_source": [
+      "gProfiler"
+    ],
+    "accession_source": [
+      "Accession"
+    ]
+  }
+}
