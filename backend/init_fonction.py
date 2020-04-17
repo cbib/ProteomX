@@ -45,8 +45,6 @@ def write_config_file(input="test/config_file.json", organism="hsapien", group=[
     # rename organism
     data_template["gene_name"]["organism"] = organism
 
-    # sheet index
-    data_template["convert_to_csv"]["worksheet"] = sheet_index
 
     # replace max_na_percent value
     data_template["clean_na"]["max_na_percent_proteins"] = max_na_prot

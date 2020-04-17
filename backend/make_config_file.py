@@ -19,7 +19,6 @@ def get_args():
     parser.add_argument("--max_na_percent_sample", "-nas", type=int,
                         help="remove samples with less than max_na_percent",
                         default=80)
-    parser.add_argument("--sheet_name_index", "-sh", type=str, help="sheetname index from xlsx file", default=1)
     parser.add_argument("--reference", "-ref", type=int, help="give the index of reference group", default=0)
     parser.add_argument("--output_file", "-o", help='output json file', default="backend/test/new_config_file.json")
     args = parser.parse_args()
