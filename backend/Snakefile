@@ -13,25 +13,15 @@ def get_file_name(folder, extension):
     files = [f for f in files if not f.startswith('.')]
     return files
 
-SAMPLES = get_file_name("raw_data", "xlsx")
+SAMPLES = get_file_name("csv", "csv")
 print(SAMPLES)
 
 
 rule all:
     input:
-        expand("data/{project}/{version}/csv/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
         expand("data/{project}/{version}/mapped/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
         expand("data/{project}/{version}/ttest/{sample}.csv", project = PROJECT, version=VERSION, sample=SAMPLES),
 
-
-
-rule conversion:
-    input:
-        data = "data/{project}/{version}/raw_data/{sample}.xlsx",
-    output:
-        converted = "data/{project}/{version}/csv/{sample}.csv"
-    shell:
-        "./backend/excel_to_csv.py -i {input.data} -o {output.converted} -p {PROJECT} -v {VERSION}"
 
 
 rule mapping:
