@@ -20,6 +20,8 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
 import { HistoryComponent } from './users/history.component';
 import { AlertModule } from './modules/alert.module';
+import { ExplorationComponent } from './exploration/exploration.component';
+import { QualityCheckComponent } from './quality-check/quality-check.component';
 
     @NgModule({
   declarations: [
@@ -29,6 +31,8 @@ import { AlertModule } from './modules/alert.module';
     DelimitorDialogComponent,
     MetadataDescriptionComponent,
     HistoryComponent,
+    ExplorationComponent,
+    QualityCheckComponent,
     
   ],
   imports: [

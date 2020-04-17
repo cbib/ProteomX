@@ -37,7 +37,7 @@ function callName(req, res) {
     // with arguments and send this data to res object
     process.stdout.on('data', function(data) {
         res.send(data.toString());
-    } )
+    })
 }
 
 
