@@ -43,12 +43,34 @@ function callName(req, res) {
 
 app.post("/upload", (req, res, next) => {
     var book=req.body.book;
+    //generate unique random uuid
     var unique_id=uuid();
-    var filename= unique_id+".xlsx"
-    XLSX.writeFile(book, config.get("data_folder")+unique_id+".xlsx");
-    fs.writeFileSync(config.get("data_folder")+unique_id+".json", JSON.stringify(req.body.associated_headers));
-    res.send({associated_headers: req.body.associated_headers, uuid:unique_id});
+    const {spawnSync} = require('child_process');
+    var filename= "/Users/benjamin/test_server_files/"+unique_id+".xlsx"
+    var configfilename= "/Users/benjamin/test_server_files/config_file.json"
+    var errorfilename= "/Users/benjamin/test_server_files/"+unique_id+".json"
+    var csvfilename= "/Users/benjamin/test_server_files/"+unique_id+".csv"
+    var samplefilename= "/Users/benjamin/test_server_files/sample_name_"+unique_id+".json"
+    XLSX.writeFile(book,filename);
+    //here call check_and_export_to_csv.py inplace
+    function runScript(){
+        
+        return spawnSync('python', ["/Users/benjamin/hello.py", "-i", filename,"-c",configfilename,"-er" ,errorfilename,"-o",csvfilename,"-s",samplefilename]);
+    }
+    const subprocess = runScript();
+    
+    console.log(subprocess.stdout.toString())
+    //fs.writeFileSync(errorfilename, JSON.stringify(req.body.associated_headers));
+    var data_sample_name =fs.readFileSync(samplefilename);
+    var error =fs.readFileSync(errorfilename);
+    //console.log(JSON.stringify(data))
+    res.send({error: error.toString(), uuid:unique_id, data_sample_name: data_sample_name.toString()});
+
+    //res.send({associated_headers: req.body.associated_headers, uuid:unique_id, sample_name: JSON.stringify(sample_name)});
+
 });
+
+
 
 
 // This function use spawnSync that allows to wait for script to finish.
@@ -68,6 +90,9 @@ app.get('/get_headers/', (req, res) => {
     res.send(data.toString());
     //res.send(subprocess.stdout.toString());
 });
+
+
+
 
 
 
