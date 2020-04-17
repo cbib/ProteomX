@@ -1,0 +1,8 @@
+{
+	"helloworld_script":"/Users/benjamin/hello.py",
+	"data_folder":"/Users/benjamin/data",
+	"api_server":{
+		"port":4000
+	}
+
+}

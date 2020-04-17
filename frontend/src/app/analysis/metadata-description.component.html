@@ -1,0 +1,61 @@
+
+<header class="page-header">
+    <div class="container-fluid">
+       <h2 class="no-margin-bottom">Describe metadata</h2>
+    </div>
+</header>
+<section class=" no-padding-bottom">
+<div class="container-fluid">
+<div class="form-group">
+<table cdkDropList cdkDropListOrientation="horizontal" class="dataTable table table-hover table-bordered table-responsive-md table-striped text-center" id="datatable" (cdkDropListDropped)="drop($event)">
+    <thead>
+    <tr>
+        <th scope="col" *ngFor="let key of get_headers() ; index as i;" style="font-size:10px;text-align: center; cursor: move;">{{key}}</th>
+    </tr>
+    <tr>
+        <th scope="col" *ngFor="let key of get_headers() ; index as i; "  style="font-size:10px;text-align: center;" cdkDrag>
+            <select [formControl]="select_form"  name="selectedGroup" size="1" (change)="onSelect($event.target.value,get_headers()[i])"  >
+                    <!--<option value="" disabled>Assign Ontology term</option>-->
+                    <option [value]="undefined" selected>Assign Group</option>
+                    <option value='{{group1_label}}' (change)="onSelect($event.target.value,key)">{{group1_label}}</option>
+                    <option value='{{group2_label}}' (change)="onSelect($event.target.value,key)">{{group2_label}}</option>
+
+                </select>             
+        </th>
+    </tr>
+        <tr>
+            <th scope="col" *ngFor="let key of get_headers() ; index as i;"  style="font-size:10px;text-align: center;">
+
+                <span *ngIf=" associated_headers[key].selected" style="display:inline-block; margin-left: 10px;"> 
+                    {{associated_headers[key].associated_group}} 
+                </span>
+            </th>
+        </tr>
+        </thead>
+</table>
+
+<label>
+Assign first group label:
+  <input type="text" [formControl]="group1_label_form"  (keyup)="edit_first_group($event.target.value)">
+</label>
+<label>
+Assign second group label:
+<input type="text" [formControl]="group2_label_form" (keyup)="edit_second_group($event.target.value)">
+</label>
+
+
+<label>
+    <select [ngModel]="species" name="species" size="1" (change)="onSelectSpecies($event.target.value)" >
+        <option [value]="undefined" selected>Choose species</option>
+        <option value='human' (change)="onSelectSpecies($event.target.value)">Homo sapiens</option>
+        <option value='mouse' (change)="onSelectSpecies($event.target.value)">Mus musculus</option>
+    </select> 
+</label>
+</div>
+ </div>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+       <label class="btn btn-primary">Run analysis<button type="submit" style="display: none; position: right" ></button></label>
+  </form>
+</section>
+

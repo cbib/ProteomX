@@ -1,0 +1,87 @@
+<div class="page">
+    <!-- Main Navbar-->
+    <header class="header">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand"> 
+                <div class="sidebar-header d-flex align-items-center">
+                    <div><img height="100" width="250" src="assets/images/logo_proteomix.png" alt="..." ></div>
+                </div>    
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <!--<li class="nav-item">
+                        <a class="nav-link" [routerLink]="['/home']" routerLinkActive="active-link"><i class="fas fa-home"></i> Home</a>
+                    </li>-->
+
+                </ul>
+                <form id='search' class="form-inline my-2 my-lg-0">
+        <!--            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>-->
+
+                </form>
+            </div>
+        </nav>
+    </header>
+    <div class="page-content d-flex align-items-stretch"> 
+    <!-- Side Navbar -->
+    <!--<div class="wrapper">-->
+        <!-- Page Content -->
+        <nav class="side-navbar">
+            <!-- Sidebar Header-->
+            <!--<div class="sidebar-header d-flex align-items-center">
+            <div><img src="assets/images/logo_proteomix.png" alt="..." class="img-fluid rounded-circle"></div>
+            </div>-->
+            <!-- Sidebar Navidation Menus--><span class="heading">Main</span>
+            <ul class="list-unstyled">
+                <li class="nav-item">
+                    <a class="nav-link" [routerLink]="['/home']" routerLinkActive="active-link"><i class="fas fa-home"></i> Home</a>
+                </li>
+<!--                <li class="nav-item">
+                    <a class="nav-link" [routerLink]="['/download']" routerLinkActive="active-link"><i class="icon-grid"></i> Tables</a>
+                </li>-->
+                <li class="nav-item"><a class="nav-link" [routerLink]="['/history']" routerLinkActive="active-link"> <i class="icon-padnote"></i>User History</a></li>
+                
+                <li><a href="#AnalysisdropdownDropdown" aria-expanded="false" data-toggle="collapse"> <i class="icon-interface-windows"></i>Analysis </a>
+                  <ul id="AnalysisdropdownDropdown" class="collapse list-unstyled ">
+                    <li class="nav-item" ><a class="nav-link" [routerLink]="['/download']" routerLinkActive="active-link">Data import</a></li>
+                    <li class="nav-item" ><a>Data annotation</a></li>
+                    <li class="nav-item"><a>Data exploration</a></li>
+                    <li class="nav-item"><a>Differential expression analysis</a></li>
+                  </ul>
+                </li>
+                
+                <li><a href="#exampledropdownDropdown" aria-expanded="false" data-toggle="collapse"> <i class="icon-interface-windows"></i>Example analysis </a>
+                  <ul id="exampledropdownDropdown" class="collapse list-unstyled ">
+                    <li class="nav-item" ><a>Data annotation</a></li>
+                    <li class="nav-item"><a>Data exploration</a></li>
+                    <li class="nav-item"><a>Differential expression analysis</a></li>
+                  </ul>
+                </li>
+             </ul><span class="heading">Extras</span>
+             <ul class="list-unstyled">
+                <li> <a href="#"> <i class="far fa-newspaper"></i>Publications</a></li>
+                <li> <a href="#"> <i class="fas fa-question-circle"></i>FAQ</a></li>
+                <li> <a href="#"> <i class="fas fa-cart-arrow-down"></i>Download</a></li>
+                <li> <a href="#"> <i class="icon-picture"></i>Releases</a></li>
+             </ul>
+        </nav>
+        <div class="content-inner">
+          <!-- Page Header-->
+          <section class=" no-padding-bottom">
+            <div class="container-fluid">
+              <router-outlet></router-outlet>
+            </div>
+          </section>
+          <!-- Dashboard Counts Section-->
+        <!--<div id="content" class="container">-->
+
+             
+        </div>
+        
+    </div>
+    
+</div>
