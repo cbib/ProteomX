@@ -170,3 +170,14 @@ def create_mapping(headers: list, group1: str, group1_name: list, group2: str, g
     df2 = pd.DataFrame(grp2, columns=headers)
 
     return pd.concat([df1, df2])
+
+
+def get_data_subset(df, values_cols_prefix, group_reference):
+    numeric_data = df.filter(regex=values_cols_prefix)
+
+    subset_reference = numeric_data.loc[:, numeric_data.columns.str.contains(group_reference)]
+    subset_condition = numeric_data.loc[:, ~numeric_data.columns.str.contains(group_reference)]
+
+    df_list = list([subset_reference, subset_condition])
+
+    return df_list
