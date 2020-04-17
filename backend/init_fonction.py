@@ -20,7 +20,7 @@ def get_sample_name(df,output):
 
     # If no "Normalized" column detected, return all column
     if len(sample_name["header"]) == 0:
-        sample_name["header"] = all_col
+        sample_name["header"] = df.columns
         sample_name["error"] = "No Normalized column found"
 
     # write new file
@@ -28,30 +28,37 @@ def get_sample_name(df,output):
         json.dump(sample_name, json_file, indent=True)
 
 
-def write_config_file(input="test/config_file.json", organism="hsapien", group=["group1", "group2"], max_na_prot=33,
-                      max_na_sample=80,
-                      sheet_index=1, reference=0, output="test/new_config_file.json"):
+def write_config_file(input, organism, group, max_na_prot,
+                      max_na_sample, reference, output):
 
     ### Take pre-write json file (input) . Rewrite json file (output) with given arguments
     with open(input) as json_file:
         data_template = json.load(json_file)
 
     # rename group in overlap & boxplot_abundances
-    data_template["overlap"]["subset"][0] = group[0]
-    data_template["overlap"]["subset"][1] = group[1]
-    data_template["boxplot_abundances"]["subset"][0] = group[0]
-    data_template["boxplot_abundances"]["subset"][1] = group[1]
+    if group:
+
+        data_template["overlap"]["subset"][0] = group[0]
+        data_template["overlap"]["subset"][1] = group[1]
+        data_template["boxplot_abundances"]["subset"][0] = group[0]
+        data_template["boxplot_abundances"]["subset"][1] = group[1]
 
     # rename organism
-    data_template["gene_name"]["organism"] = organism
+    if organism:
+       data_template["gene_name"]["organism"] = organism
 
 
     # replace max_na_percent value
-    data_template["clean_na"]["max_na_percent_proteins"] = max_na_prot
-    data_template["clean_na"]["max_na_percent_samples"] = max_na_sample
+    if max_na_prot:
+     data_template["clean_na"]["max_na_percent_proteins"] = max_na_prot
+
+    if max_na_prot:
+     data_template["clean_na"]["max_na_percent_samples"] = max_na_sample
 
     # rename reference groupe
-    data_template["ratio"]["reference"] = group[reference]
+    # Attention !! Si reference est un argument, group doit être en argument aussi.
+    if reference:
+        data_template["ratio"]["reference"] = group[reference]
 
     # make new json_file
     with open(output, 'w+') as json_file:
