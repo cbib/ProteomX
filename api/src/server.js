@@ -9,10 +9,13 @@ const config = require('config');
 const XLSX = require('xlsx')
 const { exec } = require("child_process");
 const uuid = require('uuid-random');
+const {spawnSync} = require('child_process');
+const {spawn} = require('child_process');
 var app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({extended: false, limit: '50mb'}));
 app.use(cors());
+const data_folder=config.get("data_folder");
 
 
 let appPort = config.get('api_server.port');
@@ -42,24 +45,49 @@ function callName(req, res) {
 
 
 app.post("/upload", (req, res, next) => {
+    //const {spawnSync} = require('child_process');
+    //var exec = require("child_process").exec;
+    var original_filename=req.body.filename;
     var book=req.body.book;
     //generate unique random uuid
     var unique_id=uuid();
-    const {spawnSync} = require('child_process');
-    var filename= "/Users/benjamin/test_server_files/"+unique_id+".xlsx"
-    var configfilename= "/Users/benjamin/test_server_files/config_file.json"
-    var errorfilename= "/Users/benjamin/test_server_files/"+unique_id+".json"
-    var csvfilename= "/Users/benjamin/test_server_files/"+unique_id+".csv"
-    var samplefilename= "/Users/benjamin/test_server_files/sample_name_"+unique_id+".json"
+    var errors=[]
+    
+    //create project_repository using uuid
+    //var mkdir_command="mkdir "+data_folder+"/"+unique_id;
+    //console.log(mkdir_command)
+    //const mkdir_process=spawn(mkdir_command)
+  
+    fs.mkdirSync(data_folder+"/"+unique_id, { recursive: true }, (err) => {
+    if (err) throw err;
+    });
+    //const subprocessinit=spawnSync(mkdir_command);
+    //console.log(subprocessinit.stdout.toString());
+    
+    
+    var configfilename= data_folder+"/config_files/config_file.json"
+    var errorfilename= data_folder+"/"+unique_id+"/check_and_export_to_csv_error.json"
+    var csvfilename= data_folder+"/"+unique_id+"/"+original_filename+".csv"
+    var samplefilename= data_folder+"/"+unique_id+"/sample_name.json"
+    var filename= data_folder+"/"+unique_id+"/"+original_filename+".xlsx"
+    
+//    var configfilename= data_folder+"/config_files/config_file.json"
+//    var errorfilename= data_folder+"/"+unique_id+"_check_and_export_to_csv_error.json"
+//    var csvfilename= data_folder+"/"+unique_id+"_"+original_filename+".csv"
+//    var samplefilename= data_folder+"/"+unique_id+"_sample_name.json"
+//    var filename= data_folder+"/"+unique_id+"_"+original_filename+".xlsx"
+    
+    
     XLSX.writeFile(book,filename);
     //here call check_and_export_to_csv.py inplace
-    function runScript(){
+    var args_list=[config.get("check_and_export_to_csv_script"), "-i", filename,"-c",configfilename,"-er" ,errorfilename,"-o",csvfilename,"-s",samplefilename]
+    function runPythonScript(args_l){
         
-        return spawnSync('python', ["/Users/benjamin/hello.py", "-i", filename,"-c",configfilename,"-er" ,errorfilename,"-o",csvfilename,"-s",samplefilename]);
+        return spawnSync('python', args_l);
     }
-    const subprocess = runScript();
+    const subprocess = runPythonScript(args_list);
     
-    console.log(subprocess.stdout.toString())
+    //console.log(subprocess.stdout.toString())
     //fs.writeFileSync(errorfilename, JSON.stringify(req.body.associated_headers));
     var data_sample_name =fs.readFileSync(samplefilename);
     var error =fs.readFileSync(errorfilename);
