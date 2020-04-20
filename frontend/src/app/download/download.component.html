@@ -14,13 +14,13 @@
       {{uploadResponse.message}}%
     </div>
   </div>
-  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+<!--  <form [formGroup]="form" (ngSubmit)="onSubmit()">
      
       <label class="btn btn-default btn-file">Browse <input type="file" style="display: none;"  accept=".xlsx,.csv"  (change)="onBrowse($event)"></label>
   </form>
         
 
-<!--</div>
+</div>
  <div *ngIf= "mode==='edit'" >
      <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
@@ -28,13 +28,13 @@
     
   </form>
      <br>
-</div>     -->
+</div>     
  
-<!-- <pre>
+ <pre>
 {{csv}}     
 
  </pre>
- -->
+ 
  
 <table *ngIf="fileName!==''" cdkDropList cdkDropListOrientation="horizontal" class="dataTable table table-hover table-bordered table-responsive-md table-striped text-center" id="datatable" (cdkDropListDropped)="drop($event)">
     <thead> 
@@ -57,11 +57,51 @@
  <form [formGroup]="form" (ngSubmit)="onSubmit()">
      
        <label *ngIf="loaded"  class="btn btn-default btn-file">Upload<button type="submit" style="display: none;" ></button></label>
-  </form>
+  </form>-->
+ 
+ 
+ <mat-horizontal-stepper [linear]="isLinear" #stepper>
+    <mat-step [stepControl]="form">
+    <form [formGroup]="form">
+        <ng-template matStepLabel>Choose file</ng-template>
+            <!--<mat-label>First group</mat-label>-->
+                <label class="btn btn-default btn-file">Browse <input mat-button matStepperNext type="file" style="display: none;"  accept=".xlsx,.csv"  (change)="onBrowse($event)"></label>
+            <label *ngIf="fileName!==''">{{fileName}}</label> 
+<!--        <table *ngIf="fileName!==''" cdkDropList cdkDropListOrientation="horizontal" class="dataTable table table-hover table-bordered table-responsive-md table-striped text-center" id="datatable" (cdkDropListDropped)="drop($event)">
+                <thead> 
+
+                <tr >
+                    <th style="font-size:10px;text-align: center; cursor: move;">Filename</th>
+                    <th style="font-size:10px;text-align: center; cursor: move;">Creation Date</th>
+
+                </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                    <td  style="font-size:14px;" >{{fileName}}</td>
+                    <td  style="font-size:14px;" >{{fileName}}</td>
+                </tr>
+                </tbody>
+            </table>-->
+        <div>
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-button matStepperNext >Next</button>
+        </div>
+    </form>
+        
+    </mat-step>
+    <mat-step>
+        <ng-template matStepLabel>Done</ng-template>
+            <p>You can now upload {{fileName}}.</p>
+            <div>
+                <button mat-button matStepperPrevious>Back</button>
+                <button mat-button (click)="onSubmit()">Upload</button>
+            </div>
+    </mat-step>
+</mat-horizontal-stepper>
 
  </div>
-    <!--<div class="mat-app-background basic-container">-->
-     <!--<app-stepper-overview>loading</app-stepper-overview>-->
-    <!--</div>-->
+<!--     <app-stepper-overview>loading</app-stepper-overview>-->
 </section>
 

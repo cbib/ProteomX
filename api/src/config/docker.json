@@ -1,5 +1,6 @@
 {
 	"helloworld_script":"/backend/hello.py",
+    "check_and_export_to_csv_script":"/backend/check_and_export_to_csv.py",
 	"data_folder":"/data",
 	"api_server":{
 		"port":4000

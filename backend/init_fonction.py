@@ -20,7 +20,10 @@ def get_sample_name(df,output):
 
     # If no "Normalized" column detected, return all column
     if len(sample_name["header"]) == 0:
-        sample_name["header"] = df.columns
+        #@Cedric it doesn't wiht the line below
+        #sample_name["header"] = df.columns
+        #@Cedric this line below works !
+        [sample_name["header"].append(col) for col in df.columns.values ]
         sample_name["error"] = "No Normalized column found"
 
     # write new file

@@ -9,7 +9,6 @@ import { MiddlewareService} from '../services/middleware.service';
 import { AlertService} from '../services/alert.service';
 import * as XLSX from 'xlsx';
 import { first } from 'rxjs/operators';
-
 @Component({
   selector: 'app-metadata-description',
   templateUrl: './metadata-description.component.html',
@@ -20,7 +19,7 @@ export class MetadataDescriptionComponent implements OnInit {
     @Input() uuid:string
     @Input() error:{}
     public error_message:string=""
-    public associated_headers:{}
+    
     private data ={}
     fileUploaded: File;  
     fileName:string=""
@@ -43,34 +42,80 @@ export class MetadataDescriptionComponent implements OnInit {
     private csv:any;
     private headers=[];
     private headers_select=[];
+    private associated_headers={};
     private lines=[];
+    private json_results={}
     uploadResponse = { status: '', message: 0, filePath: '' };
+    
+    
+    // stepper control
+    public isLinear = true;
+    public firstFormGroup: FormGroup;
+    public secondFormGroup: FormGroup;
+    public thirdFormGroup: FormGroup;
+    
+    //group selection
+    private selectedColumnKeys: Set<string> = new Set<string>();
+
+    private selectedColumnG1Keys: Set<string> = new Set<string>();
+    private selectedColumnG2Keys: Set<string> = new Set<string>();
+
+    selectedheader: string;
+    private current_group:string= ""
+    
+    
+    onColumnClick(key: string) {
+        
+                
+        if(this.json_results[this.current_group].has(key)) {
+            this.json_results[this.current_group].delete(key);
+        }
+        else {
+            console.log(this.json_results[this.current_group])
+            this.json_results[this.current_group].add(key);
+        }
+//        for (key in Object.keys(this.json_results)){
+//            console.log(key)
+//            console.log(this.json_results[key])
+//        }
+    }
+
+    columnBlueIsSelected(key: string) {
+
+        return this.selectedColumnG1Keys.has(key);
+    }
+    columnGreenIsSelected(key: string) {
+
+        return this.selectedColumnG2Keys.has(key);
+    }
+
+    getSelectedColumns(){
+        return this.json_results[this.current_group];
+    }
+    
     
     constructor(private route: ActivatedRoute, private router: Router,  public dialog: MatDialog, public alertService: AlertService, private middlewareService: MiddlewareService,private formBuilder: FormBuilder){
      this.route.queryParams.subscribe(
             params => {    
-                //console.log(params)    
+                //console.log(params)  
+                  
                 console.log(params['data_sample_name'])
                 var sample_names=JSON.parse(params['data_sample_name']);
                 var err=JSON.parse(params['error']);
-                var sheet_error=err['sheet_error']
-               
+                var sheet_error=err['sheet_error']            
                 this.headers=sample_names['header'];
-                this.error_message=sample_names['error']
-                console.log(sample_names)
-                console.log(sample_names['header'])
-                console.log(err)
-                console.log(sheet_error)
-                
+                this.error_message=sample_names['error']                
                 this.uuid=params['uuid']
                 if (this.error_message === "No Normalized column found"){
                     console.log(this.error_message)
                     this.alertService.info(this.error_message)
                 } 
-                
-                //console.log(this.headers)
-                //console.log(params['error'])
+                for (var i = 0; i < this.headers.length; i++){
             
+            
+                    this.associated_headers[this.headers[i]]={selected:false,associated_group:""}
+
+                }
             }
         );
        }
@@ -78,158 +123,104 @@ export class MetadataDescriptionComponent implements OnInit {
         return this.headers
     }
     
-    get_associated_headers(){
-        return this.associated_headers;
-    }
     get_headers_select(){
         return this.headers_select;
     }
-    get_lines(){
-        return this.lines
-    }
-    get_files(){
-        
-    }
+
     ngOnInit(): void {
         this.form = this.formBuilder.group({file: ['']});
         
+        this.firstFormGroup = this.formBuilder.group({
+            firstGroupCtrl: ['', Validators.required],
+            secondGroupCtrl: ['', Validators.required]
+        });
+        this.secondFormGroup = this.formBuilder.group({
+            GroupradioCtrl: ['', Validators.required]
+                 
+            });
+        this.thirdFormGroup = this.formBuilder.group({
+            thirdCtrl: ['', Validators.required]
+        });
+
+        
     }
-    drop(event: CdkDragDrop<string[]>) {
-        moveItemInArray(this.headers_select, event.previousIndex, event.currentIndex);
-        this.modified=true
-        console.log(this.headers)
+    onChange(event: Event) {
+        console.log(event['value']);
+        console.log(event['source']['_checked']);
+        this.current_group=event['value']
+//        let mrButton: MatRadioButton = mrChange.source;
+//        console.log(mrButton.name);
+//        console.log(mrButton.checked);
+//        console.log(mrButton.inputId);
+    } 
+    onChooseGroup(event: Event){
+        this.group1_label = this.firstFormGroup.get("firstGroupCtrl").value
+        this.json_results[this.group1_label]=this.selectedColumnG1Keys
+        this.group2_label = this.firstFormGroup.get("secondGroupCtrl").value
+        this.json_results[this.group2_label]=this.selectedColumnG2Keys
+        this.current_group=this.group1_label;
+       
+        
+    } 
+    onValidateGroup(event: Event){
+        
+        console.log(this.json_results)
+       
+        
+    }  
+    
+    onSelect(select_value:string, key:string) {
+        //console.log(this.selectedOntology)
+        console.log(select_value)
+        console.log(key)
+        if (select_value==="undefined"){
+            this.associated_headers[key]={selected:false, associated_group:""}
+        }
+        else{
+            this.associated_headers[key]={selected:true, associated_group:select_value}
+        } 
         console.log(this.associated_headers)
     }
-//    reset(event){
-//        console.log("1#################################################")
-//        console.log(event.target)
-//    }
-    readExcel() {  
-        let fileReader = new FileReader();  
-        fileReader.onload = (e) => {  
-                    this.storeData=fileReader.result;
-                    var data = new Uint8Array(this.storeData);  
-                    var arr = new Array();  
-                    for (var i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);  
-                    var bstr = arr.join(""); 
-                    this.book = XLSX.read(bstr, { type: "binary" });
-                    var first_sheet_name = this.book.SheetNames[0];  
-                    this.worksheet = this.book.Sheets[first_sheet_name]; 
-                    this.csv = XLSX.utils.sheet_to_csv(this.worksheet);  
-                    this.load_csv(this.csv,e) ;
-        }  
-        fileReader.readAsArrayBuffer(this.fileUploaded);  
-    }
-    onBrowse(event) {
-        console.log("1#################################################")
-        //this.fileUploaded = <File>event.target.files[0];
-        if (event.target.files.length > 0) {
-            
-            this.uploadResponse.status='progress'
-            this.fileUploaded = event.target.files[0];
-            let fileReader = new FileReader();
-            this.fileName=this.fileUploaded.name
-                
-            if (this.fileUploaded.type==="text/csv"){
-                const dialogRef = this.dialog.open(DelimitorDialogComponent, {width: '1000px', data: {delimitor: ""}});
-                dialogRef.afterClosed().subscribe(data => {
-                    console.log(data)
-                if (data!==undefined){
-                    console.log(data.delimitor)
-                    this.delimitor = data.delimitor;
-                    console.log(this.delimitor);
-                    this.read_csv(this.delimitor) 
-                };
-            }); 
-            }
-            else{  
-                this.readExcel();
-                
-            }
-            //this.loaded=true
-            //this.form.get('file').setValue(this.fileUploaded);
-            
-        }
+    
+    onSelectSpecies(values:string) {
+        //console.log(this.selectedOntology)
+        console.log(values)
+        this.species=values
     }
     
-    read_csv(delimitor:string){
-        let fileReader = new FileReader();
-        fileReader.onload = (e) => {
-            this.csv=fileReader.result;
-            this.load_csv(this.csv,e,delimitor)
-        }
-        fileReader.readAsText(this.fileUploaded); 
-    }
     
-    load_csv(csvData:any,e:any,delimitor:string=","){
-        let allTextLines = csvData.split(/\r|\n|\r/);
-        this.headers = allTextLines[0].split(delimitor);
-        this.lines = [];
-        for (let i = 1; i < allTextLines.length; i++) {
-            this.uploadResponse.message=Math.round(100* (e.loaded / e.total))
-            // split content based on comma
-            let data = allTextLines[i].split(',');
-            if (data.length === this.headers.length) {
-                let tarr = [];
-                for (let j = 0; j < this.headers.length; j++) {
-                    tarr.push(data[j]);
-                }
-                this.lines.push(tarr);
-            }
-        }
-        for (var i = 0; i < this.headers.length; i++){
-            
-            
-            this.associated_headers[this.headers[i]]={selected:false,associated_group:""}
-            if (i===0){
-                this.headers_select.push('time')
-            }
-            else{
-                this.headers_select.push('others')
-            }
-        }
-        console.log(this.associated_headers)
-    }
-      
-    readAsCSV() {  
-        var csvData = XLSX.utils.sheet_to_csv(this.worksheet);  
-        const data: Blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });     
-    }
-    
+    //last part of stepper
     onSubmit() {
         console.log("Nothing to do yet")
         this.alertService.error("you need to select a file")
     }
-    onSelect(values:string, key:string) {
-        //console.log(this.selectedOntology)
-        console.log(values)
-        console.log(key)
-          
-        this.associated_headers[key]={selected:true, associated_group:values}
-    }
-    onSelectSpecies(values:string) {
-        //console.log(this.selectedOntology)
-        console.log(values)
-
-          
-        this.species=values
-    }
     
-    edit_first_group(values:string) {
-        //console.log(this.selectedOntology)
-        console.log(values)
-          
-        this.group1_label= values;
-        this.select_form.setValue(values);
-        //this.select_form.controls["Group1"].patchValue(values)
-
-    }
-    edit_second_group(values:string) {
-        this.group2_label= values;
-        this.select_form.setValue(values);
-        //this.select_form.controls["Group2"].patchValue(values)
-        //let person = this.peopleForm.get("person").value
-    }
+//    edit_first_group(input_value:string) {
+//        //console.log(this.selectedOntology)
+//        console.log(input_value)
+//          
+//        if(input_value === ""){
+//            input_value="group1"         
+//        }
+//        //this.select_form.setValue(input_value);
+//        //this.select_form.reset(input_value);
+//        this.group1_label= input_value;
+//        
+//        //this.select_form.controls["Group1"].patchValue(values)
+//
+//    }
+//    edit_second_group(input_value:string) {
+//        console.log(input_value)
+//        if(input_value === ""){
+//            input_value="group2"         
+//        }
+//        //this.select_form.reset(input_value);
+//        //this.select_form.setValue(input_value);
+//            this.group2_label= input_value;
+//        
+//        //this.select_form.controls["Group2"].patchValue(values)
+//        //let person = this.peopleForm.get("person").value
+//    }
     
 
 }
