@@ -33,6 +33,7 @@ export class DownloadComponent implements OnInit {
     public associated_headers={};
     private lines=[];
     uploadResponse = { status: '', message: 0, filePath: '' };
+    isLinear = true;
     
     constructor(public dialog: MatDialog, private middlewareService: MiddlewareService,
         private formBuilder: FormBuilder,

@@ -5,6 +5,7 @@
 <mat-horizontal-stepper [linear]="isLinear" #stepper>
   <mat-step [stepControl]="firstFormGroup">
     <form [formGroup]="firstFormGroup">
+        <ng-template matStepLabel>Choose group name</ng-template>
       
     </form>
   </mat-step>
@@ -22,6 +23,10 @@
       </div>
     </form>
   </mat-step>
+    
+    <mat-step [stepControl]="thirdFormGroup">
+  </mat-step>
+    
   <mat-step>
     <ng-template matStepLabel>Done</ng-template>
     <p>You are now done.</p>
