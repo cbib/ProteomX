@@ -7,14 +7,14 @@ image:
 
 serve_ng_dev: image
 	# start the ng container and the node + backend container
-	docker run -it ${NGVOLUMES} -p 4201:4200 --rm example:dev '/scripts/serve_dev.sh'
+	docker run  ${NGVOLUMES} -p 4201:4200 --rm example:dev '/scripts/serve_dev.sh'
 
 serve_ng_prod: image
-	docker run -it ${NGVOLUMES} -p 4201:4200  --rm example:dev '/scripts/serve_prod.sh'
+	docker run  ${NGVOLUMES} -p 4201:4200  --rm example:dev '/scripts/serve_prod.sh'
 
 serve_api_dev: image
 	# start the ng container and the node + backend container
-	docker run -it ${SHAREDVOLUMES} -p 4000:4000 --rm example:dev '/scripts/api_start_docker.sh'
+	docker run  ${SHAREDVOLUMES} -p 4000:4000 --rm example:dev '/scripts/api_start_docker.sh'
 
 shell: image
 	docker run -it ${SHAREDVOLUMES} -p 4201:4200 -p 4000:4000 --rm example:dev bash
