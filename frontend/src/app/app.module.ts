@@ -64,8 +64,6 @@ import {MatToolbarModule} from '@angular/material/toolbar';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {MatTreeModule} from '@angular/material/tree';
 import { StepperOverviewComponent } from './stepper-overview/stepper-overview.component';
-import { AccordionComponent } from './accordion/accordion.component';
-import { AccordionGroupComponent } from './accordion-group/accordion-group.component';
 
 
     @NgModule({
@@ -79,8 +77,6 @@ import { AccordionGroupComponent } from './accordion-group/accordion-group.compo
     ExplorationComponent,
     QualityCheckComponent,
     StepperOverviewComponent,
-    AccordionComponent,
-    AccordionGroupComponent
     
   ],
   imports: [
