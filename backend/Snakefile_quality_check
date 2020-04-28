@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+rule quality_check_step:
+    input:
+         "data/{project}/{version}/gene_name/{sample}.csv"
+    output:
+        touch("data/{project}/{version}/quality_check/{sample}")
+    shell:
+        "touch {output}"
+
+rule no_na:
+    input:
+        "data/{project}/{version}/gene_name/{sample}.csv"
+    output:
+        complete = "data/{project}/{version}/no_na/all_data/{sample}.csv",
+        filtered = "data/{project}/{version}/no_na/{sample}.csv"
+    shell:
+        "./backend/clean_na.py -i {input} -oc {output.complete} -of {output.filtered} -p {PROJECT} -v {VERSION}"
+

@@ -1,0 +1,28 @@
+import os
+
+PROJECT = config["project"]
+VERSION = config["analysis_name"]
+TARGET = config["target"]
+
+def get_file_name(folder, extension):
+    path_to_data = "data/{}/{}/{}/".format(PROJECT, VERSION, folder)
+    print(path_to_data)
+    file_pattern = '{sample}.' + extension
+    files, = glob_wildcards(os.path.join(path_to_data, file_pattern))
+
+    # ignore hidden files
+    files = [f for f in files if not f.startswith('.')]
+    return files
+
+
+SAMPLES = get_file_name("csv", "csv")
+print(SAMPLES)
+
+rule all:
+    input:
+         expand("data/{project}/{version}/{target}/{sample}.csv", project=PROJECT, version=VERSION, sample=SAMPLES, target = TARGET),
+         #expand("data/{project}/{version}/no_na/{sample}.csv", project=PROJECT, version=VERSION, sample=SAMPLES)
+
+include: "Snakefile_preprocessing"
+
+include: "Snakefile_quality_check"
