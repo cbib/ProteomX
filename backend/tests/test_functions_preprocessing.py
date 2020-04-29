@@ -5,7 +5,7 @@
 import unittest
 from pandas.testing import assert_frame_equal
 
-import functions_preprocessing as fp
+import functions_quality_check as fp
 import pandas as pd
 import numpy as np
 

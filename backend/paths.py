@@ -13,7 +13,7 @@ assert global_backend_dir.exists(), "Global dir %s does not exists" % global_bac
 global_scripts_dir = pathlib.Path(global_root_dir, "scripts")
 assert global_scripts_dir.exists(), "Global dir %s does not exists" % global_scripts_dir
 
-global_data_dir = pathlib.Path(global_root_dir, "data")
+global_data_dir = pathlib.Path(global_root_dir, "data_folder")
 assert global_data_dir.exists(), "Global dir %s does not exists" % global_data_dir
 
 global_config_dir = pathlib.Path(global_root_dir, "config_files")

@@ -25,8 +25,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_file", "-i", help='Input file (csv)')
     parser.add_argument("--output_file", "-o", help='Output file (csv)')
-    parser.add_argument("--project", "-p", help='Project name')
-    parser.add_argument("--version", "-v", help='Analysis version name')
+    parser.add_argument("--file_id", "-f", help='Unique ID')
 
     args = parser.parse_args()
     return args
@@ -54,11 +53,11 @@ def compute_gmean_per_protein(df):
 
 if __name__ == "__main__":
     args = get_args()
-    rule_params = h.load_json_parameter(args.project, args.version)
+    rule_params = h.load_json_parameter(args.file_id)
     filename = h.filename(args.input_file)
-    data_structure = h.load_json_data(args.project, args.version, filename)
+    data_structure = h.load_json_data(args.file_id, filename)
 
-    logpath = os.path.join(paths.global_root_dir, paths.global_data_dir, args.project, args.version, 'log/ratio.log')
+    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/ratio.log')
     logger = h.get_logger(logpath)
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)

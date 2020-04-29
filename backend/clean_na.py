@@ -13,7 +13,7 @@ import os
 import pandas as pd
 import helpers as h
 import paths
-import functions_preprocessing as fp
+import functions_quality_check as fqc
 
 
 def get_args():
@@ -22,8 +22,7 @@ def get_args():
     parser.add_argument("--output_file_complete", "-oc", help='File (csv) with additional column with % nan values per '
                                                               'protein and group')
     parser.add_argument("--output_file_filtered", "-of", help='File (csv) with only included proteins')
-    parser.add_argument("--project", "-p", help='Project name')
-    parser.add_argument("--version", "-v", help='Analysis version name')
+    parser.add_argument("--file_id", "-f", help='Unique ID')
 
     args = parser.parse_args()
     return args
@@ -45,11 +44,11 @@ def get_groups(data_structure, values_cols_prefix):
 
 if __name__ == "__main__":
     args = get_args()
-    rule_params = h.load_json_parameter(args.project, args.version)
+    rule_params = h.load_json_parameter(args.file_id)
     filename = h.filename(args.input_file)
-    data_structure = h.load_json_data(args.project, args.version, filename)
+    data_structure = h.load_json_data(args.file_id, filename)
 
-    logpath = os.path.join(paths.global_root_dir, paths.global_data_dir, args.project, args.version, 'log/remove_lines_na.log')
+    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/remove_lines_na.log')
     logger = h.get_logger(logpath)
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
@@ -58,23 +57,22 @@ if __name__ == "__main__":
     # NaN per protein and per group
     group_prefix = get_groups(data_structure, values_cols_prefix)
 
-    result_df, stats_per_groups = fp.na_per_group(data_df,
+    result_df, stats_per_groups = fqc.na_per_group(data_df,
                                                   group_prefix,
                                                   values_cols_prefix)
 
-    result_df = fp.flag_row_with_nas(result_df, stats_per_groups, rule_params['clean_na']['max_na_percent_proteins'])
+    result_df = fqc.flag_row_with_nas(result_df, stats_per_groups, rule_params['clean_na']['max_na_percent_proteins'])
 
     # NaN per samples
-    stats_per_sample = fp.na_per_samples(data_df, values_cols_prefix, rule_params["clean_na"]["max_na_percent_samples"])
+    stats_per_sample = fqc.na_per_samples(data_df, values_cols_prefix, rule_params["clean_na"]["max_na_percent_samples"])
 
     # create json with information on % of NaN
-    out = os.path.join(paths.global_root_dir, paths.global_data_dir,
-                       args.project, args.version, 'no_na', rule_params["clean_na"]["output_json"])
-    fp.export_json_sample(stats_per_sample, out, values_cols_prefix)
+    out = os.path.join(paths.global_data_dir, args.file_id, 'no_na', rule_params["clean_na"]["output_json"])
+    fqc.export_json_sample(stats_per_sample, out, values_cols_prefix)
 
     # filter dataframe for following analysis
-    filtered_df = fp.remove_flagged_rows(result_df, 'exclude_na', 1)
-    filtered_df = fp.remove_flagged_samples(filtered_df, stats_per_sample['to_exclude'], rule_params)
+    filtered_df = fqc.remove_flagged_rows(result_df, 'exclude_na', 1)
+    filtered_df = fqc.remove_flagged_samples(filtered_df, stats_per_sample['to_exclude'], rule_params)
 
     # Export dataframe with only proteins/samples compliant with threshold
     h.export_result_to_csv(filtered_df, args.output_file_filtered)
