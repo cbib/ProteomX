@@ -1,0 +1,26 @@
+# Credits: Claire Lescoat, Macha Nikolski
+
+rule mapping:
+    input:
+         data="data/{project}/{version}/csv/{sample}.csv",
+         mapping="data/{project}/{version}/mapping/mapping_{sample}.csv",
+    output:
+          mapped="data/{project}/{version}/mapped/{sample}.csv"
+    shell:
+         "./backend/mapping.py -i {input.data} -o {output.mapped} -map {input.mapping} -p {PROJECT} -v {VERSION}"
+
+rule proteomic_preprocessing:
+    input:
+         data="data/{project}/{version}/mapped/{sample}.csv"
+    output:
+          filtered="data/{project}/{version}/preprocessed/{sample}.csv"
+    shell:
+         "./backend/preprocessing.py -i {input.data} -o {output.filtered} -p {PROJECT} -v {VERSION}"
+
+rule gene_name:
+    input:
+         data="data/{project}/{version}/preprocessed/{sample}.csv"
+    output:
+          filtered="data/{project}/{version}/gene_name/{sample}.csv"
+    shell:
+         "./backend/gene_name_gP.py -i {input.data} -o {output.filtered} -p {PROJECT} -v {VERSION}"
