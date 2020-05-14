@@ -10,8 +10,6 @@ are considered as contaminant and/or present no values at all, as defined in a c
 
 import argparse
 import pandas as pd
-import numpy as np
-import logging.config
 import os
 import helpers as h
 import paths
@@ -47,7 +45,7 @@ if __name__ == "__main__":
                                          rule_params['all']['values_cols_prefix'])
 
     # TODO : à la bonne place ?
-    result_df = clean_null_row(subset_df, rule_params['all']['values_cols_prefix'])
+    result_df = fpreprocessing.clean_null_row(subset_df, rule_params['all']['values_cols_prefix'])
     logger.info('{} proteins with enough values have been kept.'.format(len(result_df)))
 
     h.export_result_to_csv(result_df, args.output_file)

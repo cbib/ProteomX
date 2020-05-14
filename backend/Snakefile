@@ -19,6 +19,7 @@ def get_file_name(folder, extension):
 
 
 FILE_NAME = get_file_name("csv", "csv")
+print(FILE_NAME)
 
 rule all:
     input:
