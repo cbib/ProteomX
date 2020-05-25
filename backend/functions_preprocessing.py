@@ -4,9 +4,9 @@
 
 
 """
-Collection of functions used in data preprocessing :
-- proteomcs filter
-- missing values
+Collection of functions used in data preprocessing:
+- mapping
+- proteomic preprocessing
 """
 
 import pandas as pd
@@ -14,102 +14,164 @@ import re
 import numpy as np
 import collections
 import json
-from loguru import logger
+import logging.config
 
 
-def na_per_group(df: pd.DataFrame, list_group_prefix: list, values_cols_prefix: str):
+# mapping
+def rename_col_abundance_withjson(mapping_df, df: pd.DataFrame, values_cols_prefix: str, col_for_mapping: list,
+                                  col_label: str) -> pd.DataFrame:
     """
-    Input : df with abundances values, list of string to select appropriate value columns per groups (list_group_prefix)
-    and prefix used for data column (values_cols_prefix)
-    The script creates one column per group containing % of missing value for each protein.
-    Returns : the resulting columns as a dataframe (stats_per_groups), and input df augmented with the resulting columns
+    Inputs:
+        - mapping_df: data frame with metadata on samples (groups, treatment, replicate...). Each line correspond to
+                      one sample
+        - df: data frame with abundances data
+        - values_col_prefix: prefix of each abundance column to use
+        - col_for_mapping: name of column to use in the mapping_df
+        - col_label: column in the mapping_df with original label of each column abundance column to use
+
+    Returns input data frame (df) with formatted header for abundance column, built from information in mapping df
     """
-    stats_per_groups = pd.DataFrame()
 
-    for group in list_group_prefix:
-        data = df.filter(regex=group)
+    # initialize dictionary
+    id_columns_dict = collections.defaultdict(list)
 
-        # strip prefix shared with all other groups
-        prefix_to_remove = values_cols_prefix + '_'
-        group_name = re.sub(prefix_to_remove, "", group)
+    for line in mapping_df.index.values:
+        # create formatted column id for the considered sample
+        new_col_id = str(values_cols_prefix)
+        for level in col_for_mapping:
+            col = mapping_df.iloc[line][level]
+            new_col_id = new_col_id + '_{}'.format(col)
 
-        column_to_add_name = "nan_percentage_{}".format(group_name)
+        # get sample abundance column label in initial data frame
+        old_col_id = mapping_df.loc[line][col_label]
 
-        # Add percentage of NaN in the data
-        column_to_add_values = data.isna().sum(axis=1) / len(data.columns.tolist()) * 100
-        kwargs = {column_to_add_name: column_to_add_values}
-        df = df.assign(**kwargs)  # keyword in assign can't be an expression
+        # update dictionary
+        id_columns_dict.update({old_col_id: new_col_id})
 
-        # Save results aside
-        stats_per_groups = pd.concat([stats_per_groups, df[column_to_add_name]], axis=1)
-    return df, stats_per_groups
-
-
-def flag_row_with_nas(df: pd.DataFrame, stats_per_groups:pd.DataFrame, max_na_group_percentage: int) -> pd.DataFrame:
-    # Do we have more samples than the threshold (percentage)
-    problematic_groups = pd.concat([stats_per_groups.loc[:, col] >= max_na_group_percentage
-                                    for col in stats_per_groups.columns.tolist()], axis=1)
-    logger.info("Problematic groups: ", problematic_groups)
-    # Which one are ok in all groups
-    to_keep = problematic_groups.sum(axis=1) == 0
-    df['exclude_na'] = np.where(to_keep == True, 0, 1)
+    # change corresponding column name
+    df.rename(columns=id_columns_dict, inplace=True)
 
     return df
 
 
-def remove_flagged_rows(df: pd.DataFrame, col: str, exclude_code=1) -> pd.DataFrame:
-    """ Remove rows based on specific value ('exclude_code') in specified column (col)"""
-    res = df[df[col] != exclude_code]
-    return res
-
-
-def na_per_samples(df: pd.DataFrame, values_cols_prefix: str, max_na_sample_percentage: int):
+def df_to_nested_dict(df: pd.DataFrame) -> dict or list:
     """
-    Return dataframe with number and percentage of NaN per samples ; and boolean column with True if
-    the sample has to be excluded
-    """
-    # select columns with samples data
-    data = df.filter(regex=values_cols_prefix)
+    Input:
+        - df: data frame with metadata. Each line correspond to one sample, each column correspond to a categorical
+        variable (such as "treatment" with values yes and no or "group" with values group1 and group2).
+        ! Columns to order
+        ! Subset of mapping file
 
-    # how many nans in each sample
-    stats_per_sample = pd.DataFrame(data.isna().sum(axis=0), columns=['nan_number'])
-    stats_per_sample['nan_percentage'] = stats_per_sample['nan_number'] / len(data) * 100
+    Recursive function. Returns a (nested) dictionary : each key is a categorical variable ; the value associated is
+    either a list or another dictionary. Returns a list if the mapping file has only one column.
 
-    # Do we have more samples than the threshold
-    stats_per_sample['to_exclude'] = stats_per_sample['nan_percentage'] >= max_na_sample_percentage
-    return stats_per_sample
-
-
-def export_json_sample(stats_per_sample: pd.DataFrame, out: str, values_cols_prefix: str):
-    """
-        export_json_sample: create (future: update) json with stats on samples :
-        1. 'nan_percentage' : percentage of NaN
-        2. 'qc' : True if the sample NaN number is below the threshold
-        3. 'user' (future) : True if the sample was selected by the user
+    Example:
+    df = pd.DataFrame([['A','y', 1], ['A','n',2], ['B','y',1],['B','y',2] ], columns=['group', 'treatment', 'replicate'])
+    returns:
+    d = {'A': {'n': [2], 'y': [1]}, 'B': {'y': [1, 2]}}
     """
 
-    # Strip prefix used for analysis in index name
-    stats_per_sample = stats_per_sample.rename(index=lambda x: re.sub(str(values_cols_prefix + '_'), '', x))
+    if len(df.columns) == 1:
+        return list(set(df.iloc[:, 0].tolist()))
 
-    d = collections.defaultdict(dict)
-    for sample in stats_per_sample.index.values:
-        d[sample]["nan_percentage"] = stats_per_sample.loc[sample, "nan_percentage"]
-        d[sample]["qc"] = bool(~stats_per_sample.loc[sample, "to_exclude"])
+    grouped = df.groupby(df.columns[0])
 
-    with open(out, 'w+') as json_file:
-        json.dump(d, json_file)
+    d = {k: df_to_nested_dict(g.iloc[:, 1:]) for k, g in grouped}
     return d
 
 
-def remove_flagged_samples(df: pd.DataFrame, boolean_mask, rule_params) -> pd.DataFrame:
+def build_json(mapping_df: pd.DataFrame, path_to_json: str, col_to_group_by: list) -> dict or list:
     """
-    Input : df to filter, boolean mask to apply on samples columns, config dictionary
-    Remove columns corresponding to flagged samples
-    Returns a dataframe with only data columns and descriptive columns defined in the config file
+    Inputs:
+        - mapping_df: data frame with metadata for each sample. Each line correspond to one sample, each column
+        corresponds to one descriptor (group to which the sample belongs, replicate number, age of the sample, etc.)
+        - path_to_json: path.
+        - col_to_group_by: list of column in the mapping_df with categorical variables that are used for abundance
+        column header formatting
+    Returns a (nested) dictionary
     """
-    metadata_col = rule_params['all']['metadata_col']
-    metadata = df[metadata_col]
-    data = df.filter(regex=rule_params['all']['values_cols_prefix'])
+    # subset mapping df with only column with categorical variables to use as sample descriptor
+    mapping_subset = mapping_df[col_to_group_by]
 
-    res = data.loc[:,~boolean_mask]
-    return pd.concat([metadata, res], axis=1)
+    # get (nested) dictionary corresponding to the subset
+    d = df_to_nested_dict(mapping_subset)
+
+    # save dictionary
+    with open(path_to_json, 'w+') as json_file:
+        json.dump(d, json_file)
+
+    logging.info('Writing dictionary in : {}'.format(path_to_json))
+    logging.info('Dictionary with data structure : {}'.format(d))
+    return d
+
+
+# Proteomic preprocessing
+def preprocess_proteomic_data(df: pd.DataFrame, preprocess_params: dict) -> pd.DataFrame:
+
+    for param in preprocess_params:
+        len_df = len(df)
+        if preprocess_params[param]["column_id"]:
+            col = preprocess_params[param]["column_id"]
+
+            if "to_discard" in preprocess_params[param]:
+                values_to_discard = preprocess_params[param]["to_discard"]
+                df = discard_values(df, values_to_discard, col)
+
+            if "too_keep" in preprocess_params[param]:
+                values_to_keep = preprocess_params[param]["to_keep"]
+                df = keep_values(df, values_to_keep, col)
+
+            if "unique" in preprocess_params[param]:
+                unique = preprocess_params[param]["unique"]
+                column_id = preprocess_params[param]["column_id"]
+                df = df[df[column_id] == unique]
+
+            else:
+                logging.info('No values set for {} cutoff.'.format(param))
+
+            proteins_kept = len_df - len(df)
+            logging.info('Checking {}: {} proteins kept'.format(param, proteins_kept))
+
+    return df
+
+
+def discard_values(df: pd.DataFrame, values_to_discard: list, col: str):
+    for value in values_to_discard:
+        df = df[df[col] != value]
+    return df
+
+
+def keep_values(df: pd.DataFrame, values_to_keep, col: str):
+    logical_filters = list()
+    for value in values_to_keep:
+        logical_filter = (df[col] == value)
+        logical_filters.append(logical_filter)
+    df = df[np.logical_or.reduce(logical_filters)]
+    return df
+
+
+def subset_df(df: pd.DataFrame, metadata_col: list, abundance_col_prefix: str) -> pd.DataFrame:
+    """
+    Inputs:
+        - df: dataframe to subset
+        - metadata_col: columns to keep (example: 'Accession', 'Description')
+        - abundance_col_prefix: prefix present in each column with abundance values name
+
+    Returns a data frame with only data columns and selected metadata columns
+    """
+    # filter relevant subset of df
+    metadata_df = df.filter(metadata_col)
+    values_df = df.filter(regex=abundance_col_prefix)
+
+    # concatenate desired columns
+    res = pd.concat([metadata_df, values_df], axis=1)
+    return res
+
+
+def clean_null_row(df: pd.DataFrame, abundance_col_prefix: str) -> pd.DataFrame:
+    # get rows without a single value in abundances columns
+    null_row = df.filter(regex=abundance_col_prefix).isnull().all(axis=1)
+
+    # discard theses rows
+    res = df[~null_row]
+    return res

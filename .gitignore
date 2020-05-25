@@ -8,6 +8,7 @@ node_modules
 .gitignore
 .snakemake
 data
+data_folder
 venv
 backend/__pycache__
 frontend/node_modules

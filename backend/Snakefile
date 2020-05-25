@@ -1,95 +1,93 @@
 import os
+import pathlib
 
-PROJECT = config["project"]
-VERSION = config["analysis_name"]
+FILE_ID = config["file_id"]
 TARGET = config["target"]
 
+# create log folder
+pathlib.Path('data_folder/{}/log/'.format(FILE_ID)).mkdir(parents=True, exist_ok=True)
 
 def get_file_name(folder, extension):
-    path_to_data = "data/{}/{}/{}/".format(PROJECT, VERSION, folder)
+    path_to_data = "data_folder/{}/{}/".format(FILE_ID, folder)
     print(path_to_data)
-    file_pattern = '{sample}.' + extension
+    file_pattern = '{file_name}.' + extension
     files, = glob_wildcards(os.path.join(path_to_data, file_pattern))
 
     # ignore hidden files
     files = [f for f in files if not f.startswith('.')]
     return files
 
-SAMPLES = get_file_name("csv", "csv")
-print(SAMPLES)
 
+FILE_NAME = get_file_name("csv", "csv")
+print(FILE_NAME)
 
 rule all:
     input:
-        expand("data/{project}/{version}/{target}/{sample}.csv",
-               project = PROJECT, version=VERSION, sample=SAMPLES, target=TARGET)
-
+         expand("data_folder/{file_id}/{target}/{file_name}.csv",
+                file_id=FILE_ID, file_name=FILE_NAME, target=TARGET)
 
 rule mapping:
     input:
-        data = "data/{project}/{version}/csv/{sample}.csv",
-        mapping = "data/{project}/{version}/mapping/mapping_{sample}.csv"
+         data="data_folder/{file_id}/csv/{file_name}.csv",
+         mapping="data_folder/{file_id}/mapping/mapping_{file_name}.csv"
     output:
-        mapped = "data/{project}/{version}/mapped/{sample}.csv"
+          mapped="data_folder/{file_id}/mapped/{file_name}.csv"
     shell:
-        "./backend/mapping.py -i {input.data} -o {output.mapped} -map {input.mapping} -p {PROJECT} -v {VERSION}"
-
+         "./backend/mapping.py -i {input.data} -o {output.mapped} -map {input.mapping} -f {FILE_ID} "
 
 rule proteomic_preprocessing:
-   input:
-        data = "data/{project}/{version}/mapped/{sample}.csv"
-   output:
-        filtered = "data/{project}/{version}/preprocessed/{sample}.csv"
-   shell:
-        "./backend/preprocessing.py -i {input.data} -o {output.filtered} -p {PROJECT} -v {VERSION}"
-
+    input:
+         data="data_folder/{file_id}/mapped/{file_name}.csv"
+    output:
+          filtered="data_folder/{file_id}/preprocessed/{file_name}.csv"
+    shell:
+         "./backend/preprocessing.py -i {input.data} -o {output.filtered} -f {FILE_ID} "
 
 rule gene_name:
-   input:
-        data = "data/{project}/{version}/preprocessed/{sample}.csv"
-   output:
-        filtered = "data/{project}/{version}/gene_name/{sample}.csv"
-   shell:
-        "./backend/gene_name_gP.py -i {input.data} -o {output.filtered} -p {PROJECT} -v {VERSION}"
-
+    input:
+         data="data_folder/{file_id}/preprocessed/{file_name}.csv"
+    output:
+          filtered="data_folder/{file_id}/gene_name/{file_name}.csv"
+    shell:
+         "./backend/gene_name_gP.py -i {input.data} -o {output.filtered} -f {FILE_ID} "
 
 rule no_na:
     input:
-        "data/{project}/{version}/gene_name/{sample}.csv"
+         "data_folder/{file_id}/gene_name/{file_name}.csv"
     output:
-        complete = "data/{project}/{version}/no_na/all_data/{sample}.csv",
-        filtered = "data/{project}/{version}/no_na/{sample}.csv"
+          complete="data_folder/{file_id}/no_na/all_data_folder/{file_name}.csv",
+          filtered="data_folder/{file_id}/no_na/{file_name}.csv"
     shell:
-        "./backend/clean_na.py -i {input} -oc {output.complete} -of {output.filtered} -p {PROJECT} -v {VERSION}"
+         "./backend/clean_na.py -i {input} -oc {output.complete} -of {output.filtered} -f {FILE_ID} "
 
 rule reduce:
     input:
-        data = "data/{project}/{version}/no_na/{sample}.csv"
+         data="data_folder/{file_id}/no_na/{file_name}.csv"
     output:
-        reduced = "data/{project}/{version}/reduced/{sample}.csv"
+          reduced="data_folder/{file_id}/reduced/{file_name}.csv"
     shell:
-        "./backend/reduce.py -i {input.data} -o {output} -p {PROJECT} -v {VERSION}"
+         "./backend/reduce.py -i {input.data} -o {output} -f {FILE_ID} "
 
 rule log2FC:
     input:
-        data = "data/{project}/{version}/reduced/{sample}.csv"
+         data="data_folder/{file_id}/reduced/{file_name}.csv"
     output:
-        data = "data/{project}/{version}/log2FC/{sample}.csv"
+          data="data_folder/{file_id}/log2FC/{file_name}.csv"
     shell:
-        "./backend/ratio.py -i {input.data} -o {output.data} -p {PROJECT} -v {VERSION}"
+         "./backend/ratio.py -i {input.data} -o {output.data} -f {FILE_ID} "
 
 rule overlap:
     input:
-        data ="data/{project}/{version}/log2FC/{sample}.csv",
+         data="data_folder/{file_id}/log2FC/{file_name}.csv",
     output:
-        data = "data/{project}/{version}/overlap/{sample}.csv"
+          data="data_folder/{file_id}/overlap/{file_name}.csv"
     shell:
-        "./backend/overlap.py -i {input.data} -o {output.data} -p {PROJECT} -v {VERSION}"
+         "./backend/overlap.py -i {input.data} -o {output.data} -f {FILE_ID} "
 
 rule ttest:
     input:
-         data = "data/{project}/{version}/overlap/{sample}.csv"
+         data="data_folder/{file_id}/overlap/{file_name}.csv"
     output:
-          "data/{project}/{version}/ttest/{sample}.csv"
+          "data_folder/{file_id}/ttest/{file_name}.csv"
     shell:
-        "./backend/ttest.py -i {input.data} -o {output} -p {PROJECT} -v {VERSION}"
+         "./backend/ttest.py -i {input.data} -o {output} -f {FILE_ID} "

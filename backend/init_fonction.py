@@ -31,44 +31,44 @@ def get_sample_name(df,output):
         json.dump(sample_name, json_file, indent=True)
 
 
-def write_config_file(input, organism, group, max_na_prot,
+def write_config_file(json_file, organism, group, max_na_prot,
                       max_na_sample, reference, output):
 
-    ### Take pre-write json file (input) . Rewrite json file (output) with given arguments
-    with open(input) as json_file:
-        data_template = json.load(json_file)
+    # Take pre-write json file (input) . Rewrite json file (output) with given arguments
+    with open(json_file) as f:
+        data_parameters = json.load(f)
 
     # rename group in overlap & boxplot_abundances
     if group:
 
-        data_template["overlap"]["subset"][0] = group[0]
-        data_template["overlap"]["subset"][1] = group[1]
-        data_template["boxplot_abundances"]["subset"][0] = group[0]
-        data_template["boxplot_abundances"]["subset"][1] = group[1]
+        data_parameters["overlap"]["subset"][0] = group[0]
+        data_parameters["overlap"]["subset"][1] = group[1]
+        data_parameters["boxplot_abundances"]["subset"][0] = group[0]
+        data_parameters["boxplot_abundances"]["subset"][1] = group[1]
 
     # rename organism
     if organism:
-       data_template["gene_name"]["organism"] = organism
+       data_parameters["gene_name"]["organism"] = organism
 
 
     # replace max_na_percent value
     if max_na_prot:
-     data_template["clean_na"]["max_na_percent_proteins"] = max_na_prot
+     data_parameters["clean_na"]["max_na_percent_proteins"] = max_na_prot
 
     if max_na_prot:
-     data_template["clean_na"]["max_na_percent_samples"] = max_na_sample
+     data_parameters["clean_na"]["max_na_percent_samples"] = max_na_sample
 
     # rename reference groupe
     # Attention !! Si reference est un argument, group doit être en argument aussi.
     if reference:
-        data_template["ratio"]["reference"] = group[reference]
+        data_parameters["ratio"]["reference"] = group[reference]
 
     # make new json_file
-    with open(output, 'w+') as json_file:
-        json.dump(data_template, json_file, indent=True)
+    with open(json_file, 'w+') as f:
+        json.dump(data_parameters, f, indent=True)
 
 
-##Error
+# Error
 def is_good_format(input_file):
     # Check for .xlsx or .xls extension
     if input_file[-4:] != "xlsx":
@@ -80,7 +80,7 @@ def is_good_format(input_file):
 def check_for_special_character(input_file):
     # find special character or space in file name.
     regex = re.compile('[@_!#$%^&*<>?/\|}{~:] ')
-    if (regex.search(input_file) == None):
+    if regex.search(input_file) == None:
         return True
     else:
         return "special character in file name"

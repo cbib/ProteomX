@@ -18,8 +18,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_file", "-i", help='Input file (csv)')
     parser.add_argument("--output_file", "-o", help='Output file (csv)')
-    parser.add_argument("--project", "-p", help='Project name')
-    parser.add_argument("--version", "-v", help='Analysis version name')
+    parser.add_argument("--file_id", "-f", help='Unique ID')
 
     args = parser.parse_args()
     return args
@@ -34,7 +33,7 @@ def log_significant_protein_number(res):
 if __name__ == "__main__":
     args = get_args()
     filename = h.filename(args.input_file)
-    rule_params = h.load_json_parameter(args.project, args.version)
+    rule_params = h.load_json_parameter(args.file_id)
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
 

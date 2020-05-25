@@ -59,7 +59,8 @@ def filename(file):
 # TODO : looging.conf hardcoded
 def get_logger(logfilename):
     assert os.path.exists(paths.global_logging_config_file), "Couldn't logging config file"
-    logging.config.fileConfig(paths.global_logging_config_file, defaults={'logfilename': logfilename}, disable_existing_loggers=False)
+    logging.config.fileConfig(paths.global_logging_config_file, defaults={'logfilename': logfilename},
+                              disable_existing_loggers=False)
     logger = logging.getLogger('main')
     return logger
 
@@ -82,22 +83,23 @@ def get_ab_col(filename, subset, rule_params):
     return list_col
 
 
-def load_json_parameter(project, version):
-    path_to_json = os.path.join(paths.global_root_dir, paths.global_config_dir, project, version)
+def load_json_parameter(file_id):
+    path_to_json = os.path.join(paths.global_data_dir, file_id)
     with open(path_to_json + '/config_file.json') as f:
         parameters = json.load(f)
     return parameters
 
 
 def load_txt_mapping(project, version, filename):
-    path_to_json = os.path.join(paths.global_root_dir, paths.global_config_dir, project, version, "dict_file_{}.txt".format(filename))
+    path_to_json = os.path.join(paths.global_root_dir, paths.global_config_dir, project, version,
+                                "dict_file_{}.txt".format(filename))
     with open(path_to_json) as f:
         parameters = json.load(f)
     return parameters
 
 
-def load_json_data(project, version, filename):
-    path_to_json = os.path.join(paths.global_root_dir, paths.global_data_dir, project, version, "mapping/samples_json", "{}.json".format(filename))
+def load_json_data(file_id, filename):
+    path_to_json = os.path.join(paths.global_data_dir, file_id, "metadata_{}.json".format(filename))
     with open(path_to_json) as f:
         data = json.load(f)
     return data
@@ -181,3 +183,8 @@ def get_data_subset(df, values_cols_prefix, group_reference):
     df_list = list([subset_reference, subset_condition])
 
     return df_list
+
+
+def path_to_analysis(unique_id):
+    path_analysis = os.path.join(paths.global_data_dir, unique_id)
+    return path_analysis
