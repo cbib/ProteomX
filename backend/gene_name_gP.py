@@ -27,7 +27,8 @@ def get_args():
 
 
 def add_gene_name_gprofiler(data_df: pd.DataFrame, col: str, organism: str) -> pd.DataFrame:
-    gp = GProfiler(return_dataframe=True)
+    #gp = gprofiler(return_dataframe=True)
+    gp  = GProfiler()
     protein_list = data_df[col].tolist()
 
     # details of what returns the following function : https://pypi.org/project/gprofiler-official/

@@ -44,14 +44,94 @@ def na_per_group(df: pd.DataFrame, list_group_prefix: list, values_cols_prefix: 
     return df, stats_per_groups
 
 
-def flag_row_with_nas(df: pd.DataFrame, stats_per_groups:pd.DataFrame, max_na_group_percentage: int) -> pd.DataFrame:
+def cv_per_group(df: pd.DataFrame, list_group_prefix: list, values_cols_prefix: str):
+    """
+    Input : df with abundances values, list of string to select appropriate value columns per groups (list_group_prefix)
+    and prefix used for data column (values_cols_prefix)
+    The script creates one column per group containing CV for each protein.
+    Returns : the resulting columns as a dataframe (stats_per_groups), and input df augmented with the resulting columns
+    """
+    stats_per_groups = pd.DataFrame()
+
+    for group in list_group_prefix:
+        data = df.filter(regex=group)
+
+        # strip prefix shared with all other groups
+        prefix_to_remove = values_cols_prefix + '_'
+        group_name = re.sub(prefix_to_remove, "", group)
+
+        column_to_add_name = "CV_{}".format(group_name)
+
+        # Compute CV
+        column_to_add_values = np.nanstd(data, axis=1) / np.nanmean(data, axis=1)
+
+        kwargs = {column_to_add_name: column_to_add_values}
+        df = df.assign(**kwargs)  # keyword in assign can't be an expression
+
+
+        # Save results aside
+        stats_per_groups = pd.concat([stats_per_groups, df[column_to_add_name]], axis=1)
+    return df, stats_per_groups
+
+
+def flag_row_supp(df: pd.DataFrame, stats_per_groups: pd.DataFrame, threshold_value: int, name: str) -> pd.DataFrame:
     # Do we have more samples than the threshold (percentage)
-    problematic_groups = pd.concat([stats_per_groups.loc[:, col] >= max_na_group_percentage
+    problematic_groups = pd.concat([stats_per_groups.loc[:, col] >= threshold_value
                                     for col in stats_per_groups.columns.tolist()], axis=1)
+
     logger.info("Problematic groups: ", problematic_groups)
     # Which one are ok in all groups
     to_keep = problematic_groups.sum(axis=1) == 0
-    df['exclude_na'] = np.where(to_keep == True, 0, 1)
+    df['exclude_{}'.format(name)] = np.where(to_keep == True, 0, 1)
+
+    return df
+
+
+def flag_row_inf(df: pd.DataFrame, stats_per_groups: pd.DataFrame, threshold_value: int, name: str) -> pd.DataFrame:
+    # Do we have more samples than the threshold (percentage)
+    problematic_groups = pd.concat([stats_per_groups.loc[:, col] > threshold_value
+                                    for col in stats_per_groups.columns.tolist()], axis=1)
+
+    logger.info("Problematic groups: ", problematic_groups)
+    # Which one are ok in all groups
+    to_keep = problematic_groups.sum(axis=1) == 0
+    df['exclude_{}'.format(name)] = np.where(to_keep == True, 0, 1)
+
+    return df
+
+
+def keep_specific_proteins_na(df, filter, name):
+    """
+    Assumption : only 2 conditions
+    """
+    # filter nan percentage info columns
+    subset_df = df.filter(regex=filter)
+
+    # create column to store info if protein is specific to one condition
+    df['specific'] = 'both'
+
+    # create mask : true if one of the condition has 100% missing values and the other none : specific strict
+    mask = (subset_df == 100).any(axis=1) & (subset_df == 0).any(axis=1)
+
+    # apply mask
+    df['exclude_{}'.format(name)][mask] = 0
+    df['specific'][mask] = 'specific'
+
+    return df
+
+
+def keep_specific_proteins_cv(df, filter, threshold):
+    """
+    Assumption : only 2 conditions
+    """
+    # filter info columns
+    subset_df = df.filter(regex=filter)
+
+    # create mask : true if one of the condition has 100% missing values and the other none : specific strict
+    mask = (df['specific'] != 'both') & (subset_df < threshold).any(axis=1)
+
+    # apply mask
+    df['exclude_CV'][mask] = 0
 
     return df
 
@@ -110,5 +190,5 @@ def remove_flagged_samples(df: pd.DataFrame, boolean_mask, rule_params) -> pd.Da
     metadata = df[metadata_col]
     data = df.filter(regex=rule_params['all']['values_cols_prefix'])
 
-    res = data.loc[:,~boolean_mask]
-    return pd.concat([metadata, res], axis=1)
+    res = data.loc[:, ~boolean_mask]
+    return pd.concat([metadata, res, df['specific']], axis=1)

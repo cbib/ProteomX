@@ -1,0 +1,188 @@
+import os
+import pathlib
+import paths
+
+FILE_ID = config["file_id"]
+TARGET = config["target"]
+
+# create log folder
+pathlib.Path('data_folder/{}/log/'.format(FILE_ID)).mkdir(parents=True, exist_ok=True)
+
+
+def get_file_name(folder, extension):
+    path_to_data = os.path.join(paths.global_root_dir, "data_folder/{}/{}/".format(FILE_ID, folder))
+
+    file_pattern = '{file_name}' + extension
+    files, = glob_wildcards(os.path.join(path_to_data, file_pattern))
+
+    # ignore hidden files
+    files = [f for f in files if not f.startswith('.')]
+
+    return files
+
+
+
+FILE_NAME = get_file_name("csv", ".csv")
+
+if len(FILE_NAME) == 0:
+    print('WARNING')
+    print('No files fond in {} folder.'.format(FILE_ID))
+
+# get files after "divide" rule : two conditions per file only
+SPLIT_FILE_ALL = get_file_name("divided", ".csv")
+
+# remove base file (result of touch)
+SPLIT_FILE = [f for f in SPLIT_FILE_ALL if f not in FILE_NAME]
+print(SPLIT_FILE)
+
+
+# TODO: un peu laid ?
+def define_rule_all(rule_target):
+    before_divide_rule = ['mapped', 'preprocessed', 'reduced']
+    after_divide_rule = ['no_na', 'CV', 'set_comparison', 'log2FC', 'overlap', 'distribution', 'filtered_data', 'gene_name']
+
+    if rule_target in before_divide_rule:
+        return expand("data_folder/{file_id}/{target}/{file_name}.csv", file_id=FILE_ID, file_name=FILE_NAME, target=TARGET)
+    elif rule_target == 'divided':
+        return expand("data_folder/{file_id}/divided/{file_name}", file_id=FILE_ID, file_name=FILE_NAME, target=TARGET)
+    elif rule_target in after_divide_rule:
+        return expand("data_folder/{file_id}/{target}/{split_file}.csv", file_id=FILE_ID, split_file=SPLIT_FILE, target=TARGET)
+
+
+rule all:
+    input:
+         define_rule_all(TARGET)
+
+
+rule mapping:
+    input:
+         data="data_folder/{file_id}/csv/{file_name}.csv",
+         mapping="data_folder/{file_id}/mapping/mapping_{file_name}.csv"
+    output:
+          mapped="data_folder/{file_id}/mapped/{file_name}.csv"
+    shell:
+         "./backend/mapping.py -i {input.data} -o {output.mapped} -map {input.mapping} -f {FILE_ID} "
+
+rule proteomic_preprocessing:
+    input:
+         data=ancient("data_folder/{file_id}/mapped/{file_name}.csv")
+    output:
+          filtered="data_folder/{file_id}/preprocessed/{file_name}.csv"
+    shell:
+         "./backend/preprocessing.py -i {input.data} -o {output.filtered} -f {FILE_ID} "
+
+rule reduce:
+    input:
+         data="data_folder/{file_id}/preprocessed/{file_name}.csv"
+    output:
+          reduced="data_folder/{file_id}/reduced/{file_name}.csv"
+    shell:
+         "./backend/reduce.py -i {input.data} -o {output} -f {FILE_ID} "
+
+rule divide_files:
+    input:
+         data="data_folder/{file_id}/reduced/{file_name}.csv",
+         contrast_file="data_folder/{file_id}/mapping/comparison_{file_name}.csv"
+    output:
+          touch("data_folder/{file_id}/divided/{file_name}")
+    shell:
+         "./backend/divide.py -i {input.data} -c {input.contrast_file} -o {output} -f {FILE_ID}"
+
+# SECOND PART
+rule no_na:
+    input:
+         data="data_folder/{file_id}/divided/{split_file}.csv"
+    output:
+          complete="data_folder/{file_id}/no_na/{split_file}_complete.csv",
+          filtered="data_folder/{file_id}/no_na/{split_file}.csv"
+    shell:
+         "./backend/clean_na.py -i {input.data} -oc {output.complete} -of {output.filtered} -f {FILE_ID} "
+
+rule CV:
+    input:
+         data="data_folder/{file_id}/no_na/{split_file}.csv"
+    output:
+          complete="data_folder/{file_id}/CV/{split_file}_complete.csv",
+          filtered="data_folder/{file_id}/CV/{split_file}.csv",
+          fig=touch("data_folder/{file_id}/Figures/CV/{split_file}.png")
+    shell:
+         "./backend/CV.py -i {input.data} -oc {output.complete} -of {output.filtered} -ofig {output.fig} -f {FILE_ID}"
+
+rule set_comparison:
+    input:
+         data=ancient("data_folder/{file_id}/CV/{split_file}.csv")
+    output:
+          data="data_folder/{file_id}/set_comparison/{split_file}.csv",
+          figure="data_folder/{file_id}/Figures/set_comparison/{split_file}.png"
+    shell:
+         "./backend/set_comparison.py -i {input.data} -o {output.data} -of {output.figure} -f {FILE_ID} "
+
+rule log2FC:
+    input:
+         data=ancient("data_folder/{file_id}/CV/{split_file}.csv")
+    output:
+          data="data_folder/{file_id}/log2FC/{split_file}.csv"
+    shell:
+         "./backend/ratio.py -i {input.data} -o {output.data} -f {FILE_ID} "
+
+rule overlap:
+    input:
+         data=ancient("data_folder/{file_id}/log2FC/{split_file}.csv",)
+    output:
+          data="data_folder/{file_id}/overlap/{split_file}.csv"
+    shell:
+         "./backend/overlap.py -i {input.data} -o {output.data} -f {FILE_ID} "
+
+rule distribution:
+    input:
+         data=ancient("data_folder/{file_id}/overlap/{split_file}.csv")
+    output:
+          csv="data_folder/{file_id}/distribution/{split_file}.csv",
+          hist="data_folder/{file_id}/Figures/distribution/{split_file}.png"
+    shell:
+         "./backend/distribution.py -i {input.data} -o {output.csv} -hd {output.hist} -f {FILE_ID} "
+
+rule gene_name:
+    input:
+         data="data_folder/{file_id}/distribution/{split_file}.csv"
+    output:
+          filtered="data_folder/{file_id}/gene_name/{split_file}.csv"
+    shell:
+         "./backend/gene_name.py -i {input.data} -o {output.filtered} -f {FILE_ID} "
+
+
+# no further changes on the main data file
+rule filter_data:
+    input:
+         data="data_folder/{file_id}/distribution/{split_file}.csv"
+    output:
+          csv=touch("data_folder/{file_id}/filtered_data/{split_file}.csv")
+    shell:
+         "./backend/filter_data.py -i {input.data} -o {output.csv} -f {FILE_ID} "
+
+
+rule gsea_filtered:
+    input:
+         data="data_folder/{file_id}/gene_name/{split_file}.csv"
+    output:
+        touch("data_folder/{file_id}/gsea_filtered/{split_file}.csv")
+    shell:
+         "./backend/Enrichissement_souris.R -i {input.data} -o {output} -l all "
+
+rule export_distribution:
+    input:
+         data="data_folder/{file_id}/distribution/{split_file}.csv"
+    output:
+        "data_folder/{file_id}/export/distribution/{split_file}.csv"
+    shell:
+         "./backend/export_user.py -i {input.data} -o {output} -f {FILE_ID}"
+
+rule export_selection:
+    input:
+        data=directory("data_folder/{file_id}/filtered_data/")
+    output:
+        res=directory("data_folder/{file_id}/export/selection/")
+    shell:
+         "./backend/export_user.py -di {input.data} -do {output} -f {FILE_ID}"
+
+

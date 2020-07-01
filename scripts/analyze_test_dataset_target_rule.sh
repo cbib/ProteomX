@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # setup venv
-while getopts "i:t:r:" opt; do
+while getopts "i:t:r:s:" opt; do
 	case $opt in
 		t)
 			target=$OPTARG
@@ -12,9 +12,12 @@ while getopts "i:t:r:" opt; do
 		r)
 			rerun=$OPTARG
 			;;
+		s)
+			snakefile=$OPTARG
+			;;
 		\?)
-      		echo "Invalid option: -$OPTARG" >&2
-      		exit 1
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
       ;;
 	esac
 done
@@ -28,15 +31,21 @@ source ${VENV_DIR}/bin/activate
 export PYTHONPATH=${BACK_DIR}:$PYTHONPATH
 
 
-echo "$rerun"
-echo "$file"
-echo "$target"
- 	
+echo "Parameters :"
+echo "------------"
+echo "File ID : $file"
+echo "Snakefile name : $snakefile"
+echo "Rule to reach: $target"
+echo "Step already done : $rerun"
+
+echo "Command line : snakemake -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" "
+echo "------------ SNAKEMAKE"
 if [ $rerun = "False" ]
 then
-	snakemake -p -s ${BACK_DIR}/Snakefile --config file_id="$file" target="$target"
+	snakemake -s $snakefile -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target"
+
 elif [ $rerun = "True" ]
 then
-	snakemake -p -s ${BACK_DIR}/Snakefile --config file_id="$file" target="$target" -R $target
+	snakemake -s $snakefile -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$target"
 fi
 
