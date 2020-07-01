@@ -9,7 +9,6 @@ pathlib.Path('data_folder/{}/log/'.format(FILE_ID)).mkdir(parents=True, exist_ok
 
 def get_file_name(folder, extension):
     path_to_data = "data_folder/{}/{}/".format(FILE_ID, folder)
-    print(path_to_data)
     file_pattern = '{file_name}.' + extension
     files, = glob_wildcards(os.path.join(path_to_data, file_pattern))
 
@@ -19,7 +18,11 @@ def get_file_name(folder, extension):
 
 
 FILE_NAME = get_file_name("csv", "csv")
-print(FILE_NAME)
+
+if len(FILE_NAME) == 0:
+    print('WARNING')
+    print('No files fond in {} folder.'.format(FILE_ID))
+
 
 rule all:
     input:
@@ -53,7 +56,7 @@ rule gene_name:
 
 rule no_na:
     input:
-         "data_folder/{file_id}/gene_name/{file_name}.csv"
+         "data_folder/{file_id}/preprocessed/{file_name}.csv"
     output:
           complete="data_folder/{file_id}/no_na/all_data_folder/{file_name}.csv",
           filtered="data_folder/{file_id}/no_na/{file_name}.csv"

@@ -55,18 +55,36 @@ if __name__ == "__main__":
     args = get_args()
     rule_params = h.load_json_parameter(args.file_id)
     filename = h.filename(args.input_file)
-    data_structure = h.load_json_data(args.file_id, filename)
+    data_structure = h.load_json_data(args.file_id, filename, rule_params['all']['divide'])
 
     logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/ratio.log')
     logger = h.get_logger(logpath)
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
 
+    reference = rule_params['ratio']['reference']
+
+    # compute gmean per group
     result_df = compute_gmean_per_protein(data_df)
 
+    # compute ratio
     result_df['ratio'] = result_df['gmean_condition'] / result_df['gmean_reference']
+
+    # add arbitrary ratio value for specific protein
+    if rule_params['all']['specific_proteins']:
+        columns_reference = result_df.filter(regex=reference)
+
+        # add ratio for proteins specific to reference
+        mask = (result_df['specific'] == "specific") & (~columns_reference.isna().any(axis=1))
+        result_df['ratio'][mask] = 0.001
+
+        # add ratio for proteins specific to studied condition
+        mask = (result_df['specific'] == "specific") & (columns_reference.isna().any(axis=1))
+        result_df['ratio'][mask] = 1000
+
+    # compute log2FC
     result_df['log2FoldChange'] = np.log2(result_df["ratio"])
 
-    result_df.drop(['gmean_reference', 'gmean_condition', 'ratio'], axis=1, inplace=True)
-
+    # export results
+    result_df.drop(['gmean_reference', 'gmean_condition'], axis=1, inplace=True)
     h.export_result_to_csv(result_df, args.output_file)

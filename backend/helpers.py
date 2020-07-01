@@ -8,7 +8,8 @@ import logging
 import logging.config
 import os
 import pickle
-
+import operator
+from loguru import logger
 import paths
 import pandas as pd
 
@@ -98,10 +99,16 @@ def load_txt_mapping(project, version, filename):
     return parameters
 
 
-def load_json_data(file_id, filename):
-    path_to_json = os.path.join(paths.global_data_dir, file_id, "metadata_{}.json".format(filename))
-    with open(path_to_json) as f:
-        data = json.load(f)
+def load_json_data(file_id, filename, divide=False):
+    if not divide:  # case when initial file is kept through all analysis step
+        path_to_json = os.path.join(paths.global_data_dir, file_id, "metadata_{}.json".format(filename))
+        with open(path_to_json) as f:
+            data = json.load(f)
+    elif divide:  # case when initial file contains more than 2 conditions and is split during the analysis
+        initial_filename = filename.split('_')[0]
+        path_to_json = os.path.join(paths.global_data_dir, file_id, "metadata_{}.json".format(initial_filename))
+        with open(path_to_json) as f:
+            data = json.load(f)
     return data
 
 
@@ -188,3 +195,72 @@ def get_data_subset(df, values_cols_prefix, group_reference):
 def path_to_analysis(unique_id):
     path_analysis = os.path.join(paths.global_data_dir, unique_id)
     return path_analysis
+
+
+def subset_data(df: pd.DataFrame, subset_filters) -> dict:
+    """
+    Inputs:
+        - df:
+        - subset_filters: dictionary with the filters to apply for each subset to create : columns on which to apply
+        filters, threshold and operator to use
+
+    Returns:
+        A dictionary with subset names as key and filtered data frame as values
+
+    Example:
+        df = pd.DataFrame(np.array([[1, 2, 3], [4, 10, 6], [5, 8, 9]]), columns=['a', 'b', 'c'])
+        subset_filters=
+            {"subset1":
+                {"column": ["a", "b"],
+                "threshold": [2, 5],
+                "mode": ["inferior", "superior"]},
+            "subset2":
+                {"column": ["b"],
+                "threshold": [4],
+                "mode": ["superior"]}
+
+        res =
+            {"subset1":
+    """
+    # look-up table for criteria in config file
+    ops = {"<": operator.lt,
+           "<=": operator.le,
+           ">": operator.gt,
+           ">=": operator.ge,
+           "!=": operator.ne,
+           "==": operator.eq,
+           }
+
+    # create a dictionary storing the name of the subset and the associated dataframe
+    res = autovivify(levels=2, final=dict)
+
+    # check all filters for one subset
+    for subset in subset_filters:
+        logging.info("Subset: {}".format(subset))
+        filtered_df = df.copy()
+
+        for col, threshold, op in zip(*subset_filters[subset].values()):
+            logger.info("column: {}".format(col))
+            logger.info("threshold: {}".format(threshold))
+            logger.info("operator: {}".format(op))
+
+            # keep row compliant with filters
+            filtered_df = filtered_df[ops[op](filtered_df[col], threshold)]
+
+        # store results
+        res[subset] = filtered_df
+
+    return res
+
+
+def remove_absent_groups(df: pd.DataFrame, groups_list: list, values_cols_prefix: str) -> list:
+    ab_df = df.filter(regex=values_cols_prefix)
+
+    groups_to_remove = list()
+    for group in groups_list:
+        ab_subset = ab_df.filter(regex=group)
+        if ab_subset.empty:
+            groups_to_remove.append(group)
+
+    filtered_groups_list = [g for g in groups_list if g not in groups_to_remove]
+    return filtered_groups_list
