@@ -77,6 +77,20 @@ def add_gene_name_annotation_files(data_df, col, organism):
         trembl_df = trembl_df[['Accession', 'gene_name_trembl']]
 
         res_gene_name = genename_proteins(data_df, col, swiss_df, trembl_df, fragment)
+        
+    if organism == "hsapiens":
+        swiss_file = os.path.join(paths.global_data_dir, 'annotation_data/hsapiens/uniprot_swiss_prot_hsapiens.tab')
+        trembl_file = os.path.join(paths.global_data_dir, 'annotation_data/hsapiens/uniprot_trembl_hsapiens.tab')
+
+        swiss_df = pd.read_csv(swiss_file, index_col=False, header=0, sep='\t')
+        trembl_df = pd.read_csv(trembl_file, index_col=False, header=0, sep='\t')
+
+        swiss_df = swiss_df.rename({'Entry': 'Accession', 'Gene names': 'gene_name_swiss'}, axis=1)
+        swiss_df = swiss_df[['Accession', 'gene_name_swiss']]
+        trembl_df = trembl_df.rename({'Entry': 'Accession', 'Gene names': 'gene_name_trembl'}, axis=1)
+        trembl_df = trembl_df[['Accession', 'gene_name_trembl']]
+
+        res_gene_name = genename_proteins(data_df, col, swiss_df, trembl_df, fragment)
     return res_gene_name
 
 
