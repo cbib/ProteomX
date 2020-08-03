@@ -84,8 +84,10 @@ if __name__ == "__main__":
     # get parameters
     ddof = rule_params['reduction']['ddof']
     values_cols_prefix = rule_params['all']['values_cols_prefix']
-    metadata_col = rule_params['all']['metadata_col']
     depth = len(rule_params['reduction']['on']) + 1  # +1 for prefix
+
+    # save all columns but abundances columns
+    base_df = data_df.drop(data_df.filter(regex=values_cols_prefix).columns,axis=1)
 
     # compute reduction per chosen group for each protein
     if rule_params['reduction']['on'] is list:
@@ -97,7 +99,7 @@ if __name__ == "__main__":
         reduced_df = reduction_row_all_line(data_df, values_cols_prefix, ddof)
 
     # Concatenate reduced values to other columns
-    result_df = pd.concat([data_df[metadata_col], reduced_df], axis=1)
+    result_df = pd.concat([base_df, reduced_df], axis=1)
 
     # export result
     h.export_result_to_csv(result_df, args.output_file)

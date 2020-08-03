@@ -54,12 +54,12 @@ rule gene_name:
     shell:
          "./backend/gene_name_gP.py -i {input.data} -o {output.filtered} -f {FILE_ID} "
 
-rule no_na:
+rule QC:
     input:
          "data_folder/{file_id}/preprocessed/{file_name}.csv"
     output:
-          complete="data_folder/{file_id}/no_na/all_data_folder/{file_name}.csv",
-          filtered="data_folder/{file_id}/no_na/{file_name}.csv"
+          complete="data_folder/{file_id}/QC/all_data_folder/{file_name}.csv",
+          filtered="data_folder/{file_id}/QC/{file_name}.csv"
     shell:
          "./backend/clean_na.py -i {input} -oc {output.complete} -of {output.filtered} -f {FILE_ID} "
 
