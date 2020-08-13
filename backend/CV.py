@@ -39,7 +39,7 @@ def get_groups(data_structure, values_cols_prefix):
     """
 
     # +1 for all data columns prefix (ex: 'VAL')
-    depth = len(rule_params['clean_na']['on']) + 1
+    depth = len(rule_params['missing_values']['on']) + 1
     list_group_prefix = h.dict_to_list(data_structure, depth, values_cols_prefix, [])
 
     return list_group_prefix
@@ -83,7 +83,7 @@ if __name__ == "__main__":
         group_prefix = h.remove_absent_groups(data_df, group_prefix, values_cols_prefix)
 
     result_df, stats_per_groups = fqc.cv_per_group(data_df, group_prefix, values_cols_prefix)
-
+    print(rule_params['CV']['threshold'])
     result_df = fqc.flag_row_inf(result_df, stats_per_groups, rule_params['CV']['threshold'], 'CV')
 
     if rule_params['CV']['keep_specific']:

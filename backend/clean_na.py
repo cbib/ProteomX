@@ -36,7 +36,7 @@ def get_groups(data_structure, values_cols_prefix):
     """
 
     # +1 for all data columns prefix (ex: 'VAL')
-    depth = len(rule_params['clean_na']['on']) + 1
+    depth = len(rule_params['missing_values']['on']) + 1
     list_group_prefix = h.dict_to_list(data_structure, depth, values_cols_prefix, [])
 
     return list_group_prefix
@@ -61,16 +61,16 @@ if __name__ == "__main__":
                                                   group_prefix,
                                                   values_cols_prefix)
 
-    result_df = fqc.flag_row_supp(result_df, stats_per_groups, rule_params['clean_na']['max_na_percent_proteins'], 'na')
+    result_df = fqc.flag_row_supp(result_df, stats_per_groups, rule_params['missing_values']['max_na_percent_proteins'], 'na')
 
-    if rule_params['clean_na']['keep_specific']:
+    if rule_params['missing_values']['keep_specific']:
         result_df = fqc.keep_specific_proteins_na(result_df, 'nan_percentage', 'na')
 
     # NaN per samples
-    stats_per_sample = fqc.na_per_samples(data_df, values_cols_prefix, rule_params["clean_na"]["max_na_percent_samples"])
+    stats_per_sample = fqc.na_per_samples(data_df, values_cols_prefix, rule_params['missing_values']["max_na_percent_samples"])
 
     # create json with information on % of NaN for samples
-    out = os.path.join(paths.global_data_dir, args.file_id, 'no_na', 'samples_{}.json'.format(filename))
+    out = os.path.join(paths.global_data_dir, args.file_id, 'missing_values', 'samples_{}.json'.format(filename))
     fqc.export_json_sample(stats_per_sample, out, values_cols_prefix)
 
     # filter dataframe for following analysis
