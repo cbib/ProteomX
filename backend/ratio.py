@@ -31,9 +31,8 @@ def get_args():
     return args
 
 
-def compute_gmean_per_protein(df):
+def compute_gmean_per_protein(df, reference):
     numeric_data = df.filter(regex=rule_params['all']['values_cols_prefix'])
-    reference = rule_params['ratio']['reference']
 
     subset_reference = numeric_data.loc[:, numeric_data.columns.str.contains(reference)]
     subset_condition = numeric_data.loc[:, ~numeric_data.columns.str.contains(reference)]
@@ -57,29 +56,31 @@ if __name__ == "__main__":
     filename = h.filename(args.input_file)
     data_structure = h.load_json_data(args.file_id, filename, rule_params['all']['divide'])
 
-    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/ratio.log')
+    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/log2fc.log')
     logger = h.get_logger(logpath)
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
 
-    reference = rule_params['ratio']['reference']
+    reference = rule_params['all']['reference']
+    keep_specific = rule_params['all']['specific_proteins']['keep']
+    col_name = rule_params['all']['specific_proteins']['column_name']
 
     # compute gmean per group
-    result_df = compute_gmean_per_protein(data_df)
+    result_df = compute_gmean_per_protein(data_df, reference)
 
     # compute ratio
     result_df['ratio'] = result_df['gmean_condition'] / result_df['gmean_reference']
 
     # add arbitrary ratio value for specific protein
-    if rule_params['all']['specific_proteins']:
+    if keep_specific:
         columns_reference = result_df.filter(regex=reference)
 
         # add ratio for proteins specific to reference
-        mask = (result_df['specific'] == "specific") & (~columns_reference.isna().any(axis=1))
+        mask = (result_df[col_name] == "specific") & (~columns_reference.isna().any(axis=1))
         result_df['ratio'][mask] = 0.001
 
         # add ratio for proteins specific to studied condition
-        mask = (result_df['specific'] == "specific") & (columns_reference.isna().any(axis=1))
+        mask = (result_df[col_name] == "specific") & (columns_reference.isna().any(axis=1))
         result_df['ratio'][mask] = 1000
 
     # compute log2FC

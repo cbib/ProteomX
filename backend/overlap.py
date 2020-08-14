@@ -47,7 +47,7 @@ if __name__ == "__main__":
     # define two groups of patients
     # 'group1' (group[0]) is regarded as the reference in case of asymmetric computation
     # TODO: "reference" in rule "ratio" in the config file => move to rule "all"
-    groups = h.get_data_subset(data_df, rule_params['all']['values_cols_prefix'], rule_params['ratio']['reference'])
+    groups = h.get_data_subset(data_df, rule_params['all']['values_cols_prefix'], rule_params['all']['reference'])
 
     # Compute overlap per protein
     overlap_method = rule_params['overlap']['method']

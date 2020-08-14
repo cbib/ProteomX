@@ -107,7 +107,6 @@ def build_json(mapping_df: pd.DataFrame, path_to_json: str, col_to_group_by: lis
 
 # Proteomic preprocessing
 def preprocess_proteomic_data(df: pd.DataFrame, preprocess_params: dict) -> pd.DataFrame:
-
     for param in preprocess_params:
         len_df = len(df)
         if preprocess_params[param]["column_id"]:

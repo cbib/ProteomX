@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # setup venv
-while getopts "i:t:r:s:" opt; do
+while getopts "i:t:r:s:R:n:" opt; do
 	case $opt in
 		t)
 			target=$OPTARG
@@ -12,8 +12,14 @@ while getopts "i:t:r:s:" opt; do
 		r)
 			rerun=$OPTARG
 			;;
+		R)
+			rule=$OPTARG
+			;;
 		s)
 			snakefile=$OPTARG
+			;;
+		n)
+			dryrun=$OPTARG
 			;;
 		\?)
       echo "Invalid option: -$OPTARG" >&2
@@ -37,15 +43,31 @@ echo "File ID : $file"
 echo "Snakefile name : $snakefile"
 echo "Rule to reach: $target"
 echo "Step already done : $rerun"
+echo "------------ "
 
-echo "Command line : snakemake -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" "
-echo "------------ SNAKEMAKE"
-if [ $rerun = "False" ]
+if [ $dryrun == "False" ]
 then
-	snakemake -s $snakefile -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target"
+  if [ $rerun == "False" ]
+  then
+    echo "Command line : snakemake -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" "
+    snakemake -s $snakefile -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target"
 
-elif [ $rerun = "True" ]
+  elif [ $rerun == "True" ]
+  then
+    echo "Command line : snakemake -s $snakefile -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$rule" "
+    snakemake -s $snakefile -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$rule"
+  fi
+elif [ $dryrun == "True" ]
 then
-	snakemake -s $snakefile -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$target"
+  if [ $rerun == "False" ]
+  then
+    echo "Command line : snakemake -p -n -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" "
+    snakemake -s $snakefile -p -n -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target"
+
+  elif [ $rerun == "True" ]
+  then
+    echo "Command line : snakemake -s $snakefile -p -n -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$rule" "
+    snakemake -s $snakefile -p -n -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$rule"
+  fi
 fi
 

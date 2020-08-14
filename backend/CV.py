@@ -27,8 +27,7 @@ def get_args():
     parser.add_argument("--output_file_figure", "-ofig", help='Histogram (png)')
     parser.add_argument("--file_id", "-f", help='Unique ID')
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def get_groups(data_structure, values_cols_prefix):
@@ -45,21 +44,31 @@ def get_groups(data_structure, values_cols_prefix):
     return list_group_prefix
 
 
-def plot_CV(df, output_fig, bins, threshold):
-    CV_col = df.filter(regex = 'CV_')
-    for col in CV_col:
-        plot_name = col.split('_')[2] #ex : vescalagine
-        toplot = df[col].dropna()
-        plt.hist(np.array(toplot), bins=bins)
+def plot_cv(df: pd.DataFrame, output_fig: str, bins: int or list or str, threshold: int):
+    """ Plot and export histogram of CV values with matplotlib """
+
+    # get only column with values to plot
+    cv_col = df.filter(regex='CV_')
+
+    # plot one histogram per column
+    for col in cv_col:
+        plot_name = col.split('_')[2]  # ex : vescalagine
+        to_plot = df[col].dropna()
+
+        # create histogram
+        plt.hist(np.array(to_plot), bins=bins)
         plt.xlabel('CV values')
         plt.ylabel('proteins #')
+        plt.title('CV ' + plot_name)
+
+        # add vertical line if a threshold has been given
         if threshold:
             plt.axvline(threshold, color='k', linestyle='dashed', linewidth=1)
-        plt.title('CV ' + plot_name)
-        output_png = output_fig + '_histogramm_' + plot_name + '.png'
+
+        # export ploy
+        output_png = output_fig + '_histogram_' + plot_name + '.png'
         plt.savefig(output_png)
         plt.close()
-
 
 
 if __name__ == "__main__":
@@ -68,13 +77,15 @@ if __name__ == "__main__":
     filename = h.filename(args.input_file)
     data_structure = h.load_json_data(args.file_id, filename, rule_params['all']['divide'])
 
-    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/CV.log')
-    logger = h.get_logger(logpath)
+    log_path = os.path.join(paths.global_data_dir, args.file_id, 'log/CV.log')
+    logger = h.get_logger(log_path)
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
 
     # parameters
     values_cols_prefix = rule_params['all']['values_cols_prefix']
+    keep_specific = rule_params['all']['specific_proteins']['keep']
+    col_name = rule_params['all']['specific_proteins']['column_name']
 
     # Compute CV per protein and per group
     group_prefix = get_groups(data_structure, values_cols_prefix)
@@ -86,20 +97,20 @@ if __name__ == "__main__":
     print(rule_params['CV']['threshold'])
     result_df = fqc.flag_row_inf(result_df, stats_per_groups, rule_params['CV']['threshold'], 'CV')
 
-    if rule_params['CV']['keep_specific']:
-        result_df = fqc.keep_specific_proteins_cv(result_df, 'CV_', rule_params['CV']['threshold'])
+    if keep_specific:
+        result_df = fqc.keep_specific_proteins_cv(result_df, 'CV_', rule_params['CV']['threshold'], col_name)
 
-    # filter dataframe for following analysis
+    # filter data frame for following analysis
     # remove row to discard
     filtered_df = fqc.remove_flagged_rows(result_df, 'exclude_CV', 1)
 
-    # Export dataframe with only proteins compliant with threshold
+    # Export data frame with only proteins compliant with threshold
     h.export_result_to_csv(filtered_df, args.output_file_filtered)
 
-    # Export dataframe with all data and information on nan percentage per group and protein
+    # Export data frame with all data and information on nan percentage per group and protein
     h.export_result_to_csv(result_df, args.output_file_complete)
 
     # plot histograms results
-    plot_CV(result_df, args.output_file_figure, bins=150, threshold=rule_params['CV']['threshold'])
+    plot_cv(result_df, args.output_file_figure, bins=150, threshold=rule_params['CV']['threshold'])
 
     logging.info("Keeping " + str(len(filtered_df)) + " proteins with current parameters.")

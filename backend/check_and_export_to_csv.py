@@ -4,12 +4,12 @@
 # input : xlsx
 # output : log d'erreur (-er), sample name (-s), fichier au format xls (-o)
 
-import init_fonction
 import argparse
 import pandas as pd
 import json
 import os
 import helpers as h
+import functions_import as fi
 
 
 def get_args():
@@ -56,5 +56,5 @@ if __name__ == '__main__':
     with open(args.error_file, 'w+') as json_file:
         json.dump(errors, json_file, indent=True)
 
-    init_fonction.get_sample_name(df, args.output_sample_name)
+    fi.get_sample_name(df, args.output_sample_name)
     h.export_result_to_csv(df, args.output_file)
