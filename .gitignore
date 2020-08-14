@@ -4,6 +4,7 @@ venv/
 .idea
 config_files/*.json
 backend/custom_snakefiles/*
+Documentation/*
 node_modules
 .git
 .gitignore
