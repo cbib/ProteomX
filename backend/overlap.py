@@ -39,8 +39,7 @@ if __name__ == "__main__":
     rule_params = h.load_json_parameter(args.file_id)
     filename = h.filename(args.input_file)
 
-    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/overlap.log')
-    logger = h.get_logger(logpath)
+    logger = h.get_logger(args.file_id, 'overlap')
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
 

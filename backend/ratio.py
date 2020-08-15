@@ -56,8 +56,7 @@ if __name__ == "__main__":
     filename = h.filename(args.input_file)
     data_structure = h.load_json_data(args.file_id, filename, rule_params['all']['divide'])
 
-    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/log2fc.log')
-    logger = h.get_logger(logpath)
+    logger = h.get_logger(args.file_id, 'log2FC')
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
 

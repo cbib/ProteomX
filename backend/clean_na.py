@@ -44,14 +44,17 @@ def get_groups(data_structure, values_cols_prefix):
 
 if __name__ == "__main__":
     args = get_args()
+
+    # get logger
+    logger = h.get_logger(args.file_id, 'missing_values')
+
+    # load proteomics data
+    data_df = pd.read_csv(args.input_file, header=0, index_col=None)
+
+    # get parameters
     rule_params = h.load_json_parameter(args.file_id)
     filename = h.filename(args.input_file)
     data_structure = h.load_json_data(args.file_id, filename, rule_params['all']['divide'])
-
-    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/remove_lines_na.log')
-    logger = h.get_logger(logpath)
-
-    data_df = pd.read_csv(args.input_file, header=0, index_col=None)
     values_cols_prefix = rule_params['all']['values_cols_prefix']
 
     # NaN per protein and per group

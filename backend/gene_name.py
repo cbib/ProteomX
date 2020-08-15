@@ -16,7 +16,7 @@ import argparse
 import pandas as pd
 import paths
 import helpers as h
-import json
+import logging.config
 from gprofiler import GProfiler
 from functools import reduce
 import os
@@ -128,9 +128,11 @@ def remove_multiple_names(df):
 
 if __name__ == "__main__":
     args = get_args()
-    rule_params = h.load_json_parameter(args.file_id)
+
+    logger = h.get_logger(args.file_id, 'gene_name')
 
     # get parameters
+    rule_params = h.load_json_parameter(args.file_id)
     organism = rule_params['gene_name']['organism']
     sources_gn = rule_params['gene_name']['gene_name_source']  # gProfiler and/or annotation_file
     sources_accession = rule_params['gene_name']['accession_source']  # column(s) to use as input

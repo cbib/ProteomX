@@ -77,8 +77,7 @@ if __name__ == "__main__":
     filename = h.filename(args.input_file)
     data_structure = h.load_json_data(args.file_id, filename, rule_params['all']['divide'])
 
-    log_path = os.path.join(paths.global_data_dir, args.file_id, 'log/CV.log')
-    logger = h.get_logger(log_path)
+    logger = h.get_logger(args.file_id, 'CV')
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
 

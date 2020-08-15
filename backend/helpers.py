@@ -57,11 +57,15 @@ def filename(file):
 
 # https://python-guide-pt-br.readthedocs.io/fr/latest/writing/logging.html
 # https://docs.python.org/3.6/howto/logging-cookbook.html
-# TODO : looging.conf hardcoded
-def get_logger(logfilename):
+def get_logger(folder_id: str, rule: str):
+    # create path string to log output
+    path_to_log_file = os.path.join(paths.global_data_dir, folder_id, 'log/{}log'.format(rule))
+
+    # load logging configuration
     assert os.path.exists(paths.global_logging_config_file), "Couldn't logging config file"
-    logging.config.fileConfig(paths.global_logging_config_file, defaults={'logfilename': logfilename},
+    logging.config.fileConfig(paths.global_logging_config_file, defaults={'logfilename': path_to_log_file},
                               disable_existing_loggers=False)
+    # create logger
     logger = logging.getLogger('main')
     return logger
 
