@@ -18,18 +18,25 @@ import logging.config
 
 
 # mapping
-def rename_col_abundance_withjson(mapping_df, df: pd.DataFrame, values_cols_prefix: str, col_for_mapping: list,
+def rename_col_abundance_withjson(mapping_df: pd.DataFrame, data_df: pd.DataFrame, values_cols_prefix: str, col_for_mapping: list,
                                   col_label: str) -> pd.DataFrame:
     """
     Inputs:
-        - mapping_df: data frame with metadata on samples (groups, treatment, replicate...). Each line correspond to
+        - mapping_df: data frame with metadata on samples (groups, treatment, replicate, age...). Each line correspond to
                       one sample
-        - df: data frame with abundances data
-        - values_col_prefix: prefix of each abundance column to use
-        - col_for_mapping: name of column to use in the mapping_df
-        - col_label: column in the mapping_df with original label of each column abundance column to use
+        - df: data frame with proteomics data
+        - values_col_prefix: prefix to add to all abundance column
+        - col_for_mapping: name of columns to use in the mapping_df in order to create unique sample labels.
+        - col_label: name of the column in the mapping_df with raw sample labels to modify.
 
-    Returns input data frame (df) with formatted header for abundance column, built from information in mapping df
+    Returns input data frame (df) with formatted header for abundance data column, built from metadata in mapping df
+
+    Example:
+        mapping_df = pd.DataFrame()
+        data_df = pd.DataFrame()
+
+        result_df = pd.DataFrame()
+
     """
 
     # initialize dictionary
@@ -49,9 +56,9 @@ def rename_col_abundance_withjson(mapping_df, df: pd.DataFrame, values_cols_pref
         id_columns_dict.update({old_col_id: new_col_id})
 
     # change corresponding column name
-    df.rename(columns=id_columns_dict, inplace=True)
+    result_df = data_df.rename(columns=id_columns_dict)
 
-    return df
+    return result_df
 
 
 def df_to_nested_dict(df: pd.DataFrame) -> dict or list:
