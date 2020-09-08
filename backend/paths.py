@@ -16,6 +16,9 @@ assert global_scripts_dir.exists(), "Global dir %s does not exists" % global_scr
 global_data_dir = pathlib.Path(global_root_dir, "data_folder")
 assert global_data_dir.exists(), "Global dir %s does not exists" % global_data_dir
 
+global_annotation_dir = pathlib.Path(global_root_dir, "data_folder/annotation_data")
+assert global_annotation_dir.exists(), "Global dir %s does not exists" % global_annotation_dir
+
 global_config_dir = pathlib.Path(global_root_dir, "config_files")
 assert global_config_dir.exists(), "Global dir %s does not exists" % global_config_dir
 
@@ -26,6 +29,7 @@ paths = {
     'root_dir': global_root_dir,
     'config_dir': global_config_dir,
     'data_dir': global_data_dir,
+    'annot_dir' : global_annotation_dir,
     "backend_dir": global_backend_dir,
     'scripts_dir': global_scripts_dir,
     "logging_config": global_logging_config_file

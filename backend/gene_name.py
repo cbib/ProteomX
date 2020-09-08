@@ -64,9 +64,9 @@ def add_gene_name_annotation_files(data_df, col, organism):
     # parameters :
     fragment = rule_params['gene_name']['fragment']
 
-    if organism == "mmusculus":
-        swiss_file = os.path.join(paths.global_data_dir, 'annotation_data/mmusculus/uniprot_swiss_prot_mmusculus.tab')
-        trembl_file = os.path.join(paths.global_data_dir, 'annotation_data/mmusculus/uniprot_trembl_mmusculus.tab')
+    try:
+        swiss_file = os.path.join(paths.global_annotation_dir, '{}/Uniprot_SwissProt.tab'.format(organism))
+        trembl_file = os.path.join(paths.global_annotation_dir, '{}/Uniprot_TrEMBL.tab'.format(organism))
 
         swiss_df = pd.read_csv(swiss_file, index_col=False, header=0, sep='\t')
         trembl_df = pd.read_csv(trembl_file, index_col=False, header=0, sep='\t')
@@ -77,6 +77,9 @@ def add_gene_name_annotation_files(data_df, col, organism):
         trembl_df = trembl_df[['Accession', 'gene_name_trembl']]
 
         res_gene_name = genename_proteins(data_df, col, swiss_df, trembl_df, fragment)
+    except FileNotFoundError as e:
+        logging.info("This organism ({}) is not currently supported.".format(organism))
+
     return res_gene_name
 
 
