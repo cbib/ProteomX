@@ -30,7 +30,7 @@ if __name__ == "__main__":
     args = get_args()
     rule_params = h.load_json_parameter(args.file_id)
 
-    logger = h.get_logger(args.fil_id, 'preprocessing')
+    logger = h.get_logger(args.file_id, 'preprocessing')
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
     logger.info('{} proteins to analyse.'.format(len(data_df)))

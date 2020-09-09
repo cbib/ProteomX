@@ -47,6 +47,8 @@ def define_rule_all(rule_target):
         return expand("data_folder/{file_id}/divided/{file_name}", file_id=FILE_ID, file_name=FILE_NAME, target=TARGET)
     elif rule_target in after_divide_rule:
         return expand("data_folder/{file_id}/{target}/{split_file}.csv", file_id=FILE_ID, split_file=SPLIT_FILE, target=TARGET)
+    else:
+        print("WARNING: no rule to produce output")
 
 
 rule all:
@@ -65,7 +67,7 @@ rule mapping:
 
 rule proteomic_preprocessing:
     input:
-         data=ancient("data_folder/{file_id}/mapped/{file_name}.csv")
+         data="data_folder/{file_id}/mapped/{file_name}.csv"
     output:
           filtered="data_folder/{file_id}/preprocessed/{file_name}.csv"
     shell:
