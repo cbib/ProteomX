@@ -43,6 +43,7 @@ echo "File ID : $file"
 echo "Snakefile name : $snakefile"
 echo "Rule to reach: $target"
 echo "Step already done : $rerun"
+echo "Dry-run : $dryrun"
 echo "------------ "
 
 if [ $dryrun == "False" ]
@@ -54,9 +55,10 @@ then
 
   elif [ $rerun == "True" ]
   then
-    echo "Command line : snakemake -s $snakefile -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$rule" "
+    echo "Command line : snakemake -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$rule" "
     snakemake -s $snakefile -p -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$rule"
   fi
+
 elif [ $dryrun == "True" ]
 then
   if [ $rerun == "False" ]
@@ -66,7 +68,7 @@ then
 
   elif [ $rerun == "True" ]
   then
-    echo "Command line : snakemake -s $snakefile -p -n -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$rule" "
+    echo "Command line : snakemake -p -n -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$rule" "
     snakemake -s $snakefile -p -n -s ${BACK_DIR}/$snakefile --config file_id="$file" target="$target" -R "$rule"
   fi
 fi

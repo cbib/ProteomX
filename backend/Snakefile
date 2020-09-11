@@ -38,7 +38,7 @@ def define_rule_all(rule_target):
     rules_analysis = ['log2FC', 'overlap', 'ttest']
 
     # all rules
-    rules = ['mapped', 'preprocessed', 'missing_values', 'CV', 'log2FC', 'overlap', 'ttest']
+    rules = ['mapped', 'preprocessed', 'missing_values', 'CV', 'log2FC', 'overlap', 'ttest', 'gene_name']
 
     if rule_target in rule_import:
         print("Executing first rule of pipeline")
@@ -80,14 +80,6 @@ rule data_reduction:
           reduced="data_folder/{file_id}/data_reduction/{samples}.csv"
     shell:
          "./backend/reduce.py -i {input.data} -o {output} -f {FILE_ID} "
-
-rule gene_name:
-    input:
-         data="data_folder/{file_id}/data_reduction/{samples}.csv"
-    output:
-          filtered="data_folder/{file_id}/gene_name/{samples}.csv"
-    shell:
-         "./backend/gene_name.py -i {input.data} -o {output.filtered} -f {FILE_ID} "
 
 rule missing_values:
     input:
@@ -131,3 +123,11 @@ rule ttest:
           "data_folder/{file_id}/ttest/{samples}.csv"
     shell:
          "./backend/ttest.py -i {input.data} -o {output} -f {FILE_ID} "
+
+rule gene_name:
+    input:
+         data="data_folder/{file_id}/data_reduction/{samples}.csv"
+    output:
+          filtered="data_folder/{file_id}/gene_name/{samples}.csv"
+    shell:
+         "./backend/gene_name.py -i {input.data} -o {output.filtered} -f {FILE_ID} "

@@ -38,9 +38,9 @@ print(SPLIT_FILE)
 
 # TODO: un peu laid ?
 def define_rule_all(rule_target):
-    before_divide_rule = ['mapped', 'preprocessed', 'reduced']
+    before_divide_rule = ['mapped', 'preprocessed', 'data_reduction']
     after_divide_rule = ['missing_values', 'CV', 'set_comparison', 'log2FC', 'overlap', 'distribution', 'filtered_data', 'gene_name']
-
+    print(rule_target)
     if rule_target in before_divide_rule:
         return expand("data_folder/{file_id}/{target}/{file_name}.csv", file_id=FILE_ID, file_name=FILE_NAME, target=TARGET)
     elif rule_target == 'divided':
@@ -73,17 +73,18 @@ rule proteomic_preprocessing:
     shell:
          "./backend/preprocessing.py -i {input.data} -o {output.filtered} -f {FILE_ID} "
 
-rule reduce:
+rule data_reduction:
     input:
          data="data_folder/{file_id}/preprocessed/{file_name}.csv"
     output:
-          reduced="data_folder/{file_id}/reduced/{file_name}.csv"
+          reduced="data_folder/{file_id}/data_reduction/{file_name}.csv"
     shell:
          "./backend/reduce.py -i {input.data} -o {output} -f {FILE_ID} "
 
+
 rule divide_files:
     input:
-         data="data_folder/{file_id}/reduced/{file_name}.csv",
+         data="data_folder/{file_id}/data_reduction/{file_name}.csv",
          contrast_file="data_folder/{file_id}/mapping/comparison_{file_name}.csv"
     output:
           touch("data_folder/{file_id}/divided/{file_name}")
