@@ -17,6 +17,8 @@ import pandas as pd
 import paths
 import helpers as h
 import logging.config
+import pkg_resources
+#pkg_resources.require("gprofiler==0.3.5")
 from gprofiler import GProfiler
 from functools import reduce
 import os
@@ -151,7 +153,7 @@ if __name__ == "__main__":
 
     for tool in sources_gn:
         for col in sources_accession:
-
+            print(functions[tool])
             result_df = functions[tool](data_df, col, organism)
 
             if duplicate:
