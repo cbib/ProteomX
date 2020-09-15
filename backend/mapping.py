@@ -43,8 +43,9 @@ if __name__ == "__main__":
 
     # get data
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
+
     logging.info("Proteomics data file successfully loaded.")
-    mapping_df = pd.read_csv(args.mapping_file, header=0, index_col=None)
+    mapping_df = pd.read_csv(args.mapping_file, header=0, index_col=None, sep='\t')
     logging.info("Mapping file successfully loaded.")
 
     # get parameters

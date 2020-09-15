@@ -38,7 +38,7 @@ def na_per_group(df: pd.DataFrame, list_group_prefix: list, values_cols_prefix: 
         column_to_add_values = data.isna().sum(axis=1) / len(data.columns.tolist()) * 100
         kwargs = {column_to_add_name: column_to_add_values}
         df = df.assign(**kwargs)  # keyword in assign can't be an expression
-
+        print(df[column_to_add_name])
         # Save results aside
         stats_per_groups = pd.concat([stats_per_groups, df[column_to_add_name]], axis=1)
     return df, stats_per_groups
@@ -75,6 +75,8 @@ def cv_per_group(df: pd.DataFrame, list_group_prefix: list, values_cols_prefix: 
 
 def flag_row_supp(df: pd.DataFrame, stats_per_groups: pd.DataFrame, threshold_value: int, name: str) -> pd.DataFrame:
     # Do we have more samples than the threshold (percentage)
+
+    print(stats_per_groups)
     problematic_groups = pd.concat([stats_per_groups.loc[:, col] >= threshold_value
                                     for col in stats_per_groups.columns.tolist()], axis=1)
 

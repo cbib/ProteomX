@@ -9,7 +9,7 @@ TARGET = config["target"]
 def get_file_name(folder, extension):
     """ Get stem name of all files in the required folder with the appropriate extension. """
     path_to_data = os.path.join(paths.global_root_dir, "data_folder/{}/{}/".format(FILE_ID, folder))
-    print(path_to_data)
+
     file_pattern = '{file_name}.' + extension
     files, = glob_wildcards(os.path.join(path_to_data, file_pattern))
 
@@ -83,7 +83,7 @@ rule data_reduction:
 
 rule missing_values:
     input:
-         "data_folder/{file_id}/preprocessed/{samples}.csv"
+         "data_folder/{file_id}/data_reduction/{samples}.csv"
     output:
           complete="data_folder/{file_id}/missing_values/all_data_folder/{samples}.csv",
           filtered="data_folder/{file_id}/missing_values/{samples}.csv"
@@ -126,7 +126,7 @@ rule ttest:
 
 rule gene_name:
     input:
-         data="data_folder/{file_id}/data_reduction/{samples}.csv"
+         data="data_folder/{file_id}/ttest/{samples}.csv"
     output:
           filtered="data_folder/{file_id}/gene_name/{samples}.csv"
     shell:

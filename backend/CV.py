@@ -52,7 +52,8 @@ def plot_cv(df: pd.DataFrame, output_fig: str, bins: int or list or str, thresho
 
     # plot one histogram per column
     for col in cv_col:
-        plot_name = col.split('_')[2]  # ex : vescalagine
+        plot_name = '_'.join(col.split('_')[1:])
+        print(plot_name)
         to_plot = df[col].dropna()
 
         # create histogram
@@ -110,6 +111,7 @@ if __name__ == "__main__":
     h.export_result_to_csv(result_df, args.output_file_complete)
 
     # plot histograms results
+
     plot_cv(result_df, args.output_file_figure, bins=150, threshold=rule_params['CV']['threshold'])
 
     logging.info("Keeping " + str(len(filtered_df)) + " proteins with current parameters.")

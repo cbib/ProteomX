@@ -17,8 +17,6 @@ import pandas as pd
 import paths
 import helpers as h
 import logging.config
-import pkg_resources
-#pkg_resources.require("gprofiler==0.3.5")
 from gprofiler import GProfiler
 from functools import reduce
 import os

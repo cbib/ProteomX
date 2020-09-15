@@ -141,26 +141,34 @@ def as_python_object(dct):
 
 
 def dict_to_list(d, depth, col_name, list_col_prefix):
+
     for k, v in d.items():
         new_colname = col_name + '_' + str(k)
         list_col_prefix.append(new_colname)
+
         if isinstance(v, collections.Mapping):
             new_list_prefix = list_col_prefix
             dict_to_list(v, depth, new_colname, new_list_prefix)
-        else:
-            depth = 4
+
+        #else:
+            #depth = 4
     list_prefix = [x for x in list_col_prefix if len(x.split('_')) == depth]
+
     return list_prefix
 
 
-def export_result_to_csv(result_df, output_file):
+def export_result_to_csv(result_df, output_file, index_col=False):
     try:
         result_df.to_csv(output_file, index=False)
         logging.info('Writing in ' + output_file)
 
     except OSError:
-        os.makedirs(output_file)
-        result_df.to_csv(output_file, index=False)
+        # create folder
+        folder_name = os.path.dirname(output_file)
+        os.makedirs(folder_name)
+
+        # export file
+        result_df.to_csv(output_file, index=index_col)
         logging.info('Creating directory : ' + os.path.dirname(output_file))
         logging.info('Writing in ' + output_file)
 
@@ -170,8 +178,8 @@ def export_result_to_csv(result_df, output_file):
 
 
 def create_mapping(headers: list, group1: str, group1_name: list, group2: str, group2_name: list) -> pd.DataFrame:
-    '''Input : header structure and 2 groups (name and list of samples for each one)
-       Returns a dataframe for these groups with automatically assigned sample numbers'''
+    """Input : header structure and 2 groups (name and list of samples for each one)
+       Returns a dataframe for these groups with automatically assigned sample numbers"""
     if not len(headers) == 3:
         raise IndexError("Expected 3 column headers, got % s", headers)
 
