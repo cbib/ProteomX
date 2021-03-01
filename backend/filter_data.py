@@ -42,7 +42,7 @@ if __name__ == "__main__":
     args = get_args()
     rule_params = h.load_json_parameter(args.file_id)
 
-    subset_filters = rule_params['gsea']['subset_filters']
+    subset_filters = rule_params['filtered_data']['subset_filters']
 
     # load data
     if args.input_file:

@@ -16,7 +16,7 @@ import argparse
 import pandas as pd
 import paths
 import helpers as h
-import json
+import logging.config
 from gprofiler import GProfiler
 from functools import reduce
 import os
@@ -64,9 +64,9 @@ def add_gene_name_annotation_files(data_df, col, organism):
     # parameters :
     fragment = rule_params['gene_name']['fragment']
 
-    if organism == "mmusculus":
-        swiss_file = os.path.join(paths.global_data_dir, 'annotation_data/mmusculus/uniprot_swiss_prot_mmusculus.tab')
-        trembl_file = os.path.join(paths.global_data_dir, 'annotation_data/mmusculus/uniprot_trembl_mmusculus.tab')
+    try:
+        swiss_file = os.path.join(paths.global_annotation_dir, '{}/Uniprot_SwissProt.tab'.format(organism))
+        trembl_file = os.path.join(paths.global_annotation_dir, '{}/Uniprot_TrEMBL.tab'.format(organism))
 
         swiss_df = pd.read_csv(swiss_file, index_col=False, header=0, sep='\t')
         trembl_df = pd.read_csv(trembl_file, index_col=False, header=0, sep='\t')
@@ -77,6 +77,9 @@ def add_gene_name_annotation_files(data_df, col, organism):
         trembl_df = trembl_df[['Accession', 'gene_name_trembl']]
 
         res_gene_name = genename_proteins(data_df, col, swiss_df, trembl_df, fragment)
+    except FileNotFoundError as e:
+        logging.info("This organism ({}) is not currently supported.".format(organism))
+
     return res_gene_name
 
 
@@ -128,9 +131,11 @@ def remove_multiple_names(df):
 
 if __name__ == "__main__":
     args = get_args()
-    rule_params = h.load_json_parameter(args.file_id)
+
+    logger = h.get_logger(args.file_id, 'gene_name')
 
     # get parameters
+    rule_params = h.load_json_parameter(args.file_id)
     organism = rule_params['gene_name']['organism']
     sources_gn = rule_params['gene_name']['gene_name_source']  # gProfiler and/or annotation_file
     sources_accession = rule_params['gene_name']['accession_source']  # column(s) to use as input
@@ -146,7 +151,7 @@ if __name__ == "__main__":
 
     for tool in sources_gn:
         for col in sources_accession:
-
+            print(functions[tool])
             result_df = functions[tool](data_df, col, organism)
 
             if duplicate:

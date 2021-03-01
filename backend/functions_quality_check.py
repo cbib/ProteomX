@@ -38,7 +38,7 @@ def na_per_group(df: pd.DataFrame, list_group_prefix: list, values_cols_prefix: 
         column_to_add_values = data.isna().sum(axis=1) / len(data.columns.tolist()) * 100
         kwargs = {column_to_add_name: column_to_add_values}
         df = df.assign(**kwargs)  # keyword in assign can't be an expression
-
+        print(df[column_to_add_name])
         # Save results aside
         stats_per_groups = pd.concat([stats_per_groups, df[column_to_add_name]], axis=1)
     return df, stats_per_groups
@@ -68,7 +68,6 @@ def cv_per_group(df: pd.DataFrame, list_group_prefix: list, values_cols_prefix: 
         kwargs = {column_to_add_name: column_to_add_values}
         df = df.assign(**kwargs)  # keyword in assign can't be an expression
 
-
         # Save results aside
         stats_per_groups = pd.concat([stats_per_groups, df[column_to_add_name]], axis=1)
     return df, stats_per_groups
@@ -76,6 +75,8 @@ def cv_per_group(df: pd.DataFrame, list_group_prefix: list, values_cols_prefix: 
 
 def flag_row_supp(df: pd.DataFrame, stats_per_groups: pd.DataFrame, threshold_value: int, name: str) -> pd.DataFrame:
     # Do we have more samples than the threshold (percentage)
+
+    print(stats_per_groups)
     problematic_groups = pd.concat([stats_per_groups.loc[:, col] >= threshold_value
                                     for col in stats_per_groups.columns.tolist()], axis=1)
 
@@ -89,18 +90,21 @@ def flag_row_supp(df: pd.DataFrame, stats_per_groups: pd.DataFrame, threshold_va
 
 def flag_row_inf(df: pd.DataFrame, stats_per_groups: pd.DataFrame, threshold_value: int, name: str) -> pd.DataFrame:
     # Do we have more samples than the threshold (percentage)
+    print('This function should work)')
     problematic_groups = pd.concat([stats_per_groups.loc[:, col] > threshold_value
                                     for col in stats_per_groups.columns.tolist()], axis=1)
 
     logger.info("Problematic groups: ", problematic_groups)
+
     # Which one are ok in all groups
     to_keep = problematic_groups.sum(axis=1) == 0
+
     df['exclude_{}'.format(name)] = np.where(to_keep == True, 0, 1)
 
     return df
 
 
-def keep_specific_proteins_na(df, filter, name):
+def keep_specific_proteins_na(df, filter, step, col_name):
     """
     Assumption : only 2 conditions
     """
@@ -108,19 +112,20 @@ def keep_specific_proteins_na(df, filter, name):
     subset_df = df.filter(regex=filter)
 
     # create column to store info if protein is specific to one condition
-    df['specific'] = 'both'
+
+    df[col_name] = 'both'
 
     # create mask : true if one of the condition has 100% missing values and the other none : specific strict
     mask = (subset_df == 100).any(axis=1) & (subset_df == 0).any(axis=1)
 
     # apply mask
-    df['exclude_{}'.format(name)][mask] = 0
-    df['specific'][mask] = 'specific'
+    df['exclude_{}'.format(step)][mask] = 0
+    df[col_name][mask] = 'specific'
 
     return df
 
 
-def keep_specific_proteins_cv(df, filter, threshold):
+def keep_specific_proteins_cv(df, filter, threshold, col_name):
     """
     Assumption : only 2 conditions
     """
@@ -128,7 +133,7 @@ def keep_specific_proteins_cv(df, filter, threshold):
     subset_df = df.filter(regex=filter)
 
     # create mask : true if one of the condition has 100% missing values and the other none : specific strict
-    mask = (df['specific'] != 'both') & (subset_df < threshold).any(axis=1)
+    mask = (df[col_name] != 'both') & (subset_df < threshold).any(axis=1)
 
     # apply mask
     df['exclude_CV'][mask] = 0
@@ -144,7 +149,7 @@ def remove_flagged_rows(df: pd.DataFrame, col: str, exclude_code=1) -> pd.DataFr
 
 def na_per_samples(df: pd.DataFrame, values_cols_prefix: str, max_na_sample_percentage: int):
     """
-    Return dataframe with number and percentage of NaN per samples ; and boolean column with True if
+    Return data frame with number and percentage of NaN per samples ; and boolean column with True if
     the sample has to be excluded
     """
     # select columns with samples data
@@ -180,15 +185,17 @@ def export_json_sample(stats_per_sample: pd.DataFrame, out: str, values_cols_pre
     return d
 
 
-def remove_flagged_samples(df: pd.DataFrame, boolean_mask, rule_params) -> pd.DataFrame:
+def remove_flagged_samples(df: pd.DataFrame, boolean_mask, metadata_col, values_col_prefix, keep_specific, col_name) -> pd.DataFrame:
     """
     Input : df to filter, boolean mask to apply on samples columns, config dictionary
     Remove columns corresponding to flagged samples
-    Returns a dataframe with only data columns and descriptive columns defined in the config file
+    Returns a data frame with only data columns and descriptive columns defined in the config file
     """
-    metadata_col = rule_params['all']['metadata_col']
     metadata = df[metadata_col]
-    data = df.filter(regex=rule_params['all']['values_cols_prefix'])
+    data = df.filter(regex=values_col_prefix)
 
     res = data.loc[:, ~boolean_mask]
-    return pd.concat([metadata, res, df['specific']], axis=1)
+    if keep_specific:
+        return pd.concat([metadata, res, df[col_name]], axis=1)
+    else:
+        return pd.concat([metadata, res], axis=1)

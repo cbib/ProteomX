@@ -102,8 +102,7 @@ if __name__ == "__main__":
     filename = h.filename(args.input_file)
 
     # get logger
-    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/divide.log')
-    logger = h.get_logger(logpath)
+    logger = h.get_logger(args.file_id, 'divide')
 
     # get data
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
