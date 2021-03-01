@@ -77,8 +77,11 @@ def add_gene_name_annotation_files(data_df, col, organism):
         trembl_df = trembl_df[['Accession', 'gene_name_trembl']]
 
         res_gene_name = genename_proteins(data_df, col, swiss_df, trembl_df, fragment)
+
+
     except FileNotFoundError as e:
         logging.info("This organism ({}) is not currently supported.".format(organism))
+
 
     return res_gene_name
 
