@@ -8,7 +8,7 @@ import pandas as pd
 import re
 
 
-def get_sample_name(df,output):
+def get_sample_name(df, output):
     # load df header, extract sample name from "Normalized" column. Write json.
 
     sample_name = {}
@@ -20,10 +20,10 @@ def get_sample_name(df,output):
 
     # If no "Normalized" column detected, return all column
     if len(sample_name["header"]) == 0:
-        #@Cedric it doesn't wiht the line below
-        #sample_name["header"] = df.columns
-        #@Cedric this line below works !
-        [sample_name["header"].append(col) for col in df.columns.values ]
+        # @Cedric it doesn't wiht the line below
+        # sample_name["header"] = df.columns
+        # @Cedric this line below works !
+        [sample_name["header"].append(col) for col in df.columns.values]
         sample_name["error"] = "No Normalized column found"
 
     # write new file
@@ -32,38 +32,30 @@ def get_sample_name(df,output):
 
 
 def write_config_file(json_file, organism, group, max_na_prot,
-                      max_na_sample, reference, output):
-
+                      max_na_sample, reference):
     # Take pre-write json file (input) . Rewrite json file (output) with given arguments
     with open(json_file) as f:
         data_parameters = json.load(f)
 
-    # rename group in overlap & boxplot_abundances
-    if group:
-
-        data_parameters["overlap"]["subset"][0] = group[0]
-        data_parameters["overlap"]["subset"][1] = group[1]
-        data_parameters["boxplot_abundances"]["subset"][0] = group[0]
-        data_parameters["boxplot_abundances"]["subset"][1] = group[1]
-
     # rename organism
     if organism:
-       data_parameters["gene_name"]["organism"] = organism
-
+        data_parameters["gene_name"]["organism"] = organism
 
     # replace max_na_percent value
     if max_na_prot:
-     data_parameters["clean_na"]["max_na_percent_proteins"] = max_na_prot
+        data_parameters["missing_values"]["max_na_percent_proteins"] = max_na_prot
 
     if max_na_prot:
-     data_parameters["clean_na"]["max_na_percent_samples"] = max_na_sample
+        data_parameters["missing_values"]["max_na_percent_samples"] = max_na_sample
 
     # rename reference groupe
     # Attention !! Si reference est un argument, group doit être en argument aussi.
-    if reference:
-        data_parameters["ratio"]["reference"] = group[reference]
+    if type(reference) is int:
+        data_parameters["all"]["reference"] = group[reference]
+    elif type(reference) is str:
+        data_parameters["all"]["reference"] = reference
 
-    # make new json_file
+    # save json file
     with open(json_file, 'w+') as f:
         json.dump(data_parameters, f, indent=True)
 
@@ -106,19 +98,22 @@ def enough_prot(table):
     else:
         return True
 
+
 def find_accession(table):
     if "Accession" not in table.columns:
         return "no accession column found"
     else:
         return True
 
+
 def check_dtypes(table):
     for i in table.columns:
         if "Abundances" in i:
             if table[i].dtypes != float:
                 return "Abundance column values are not float"
-            else :
+            else:
                 return True
+
 
 def check_file_name(input_file):
     all_error = []
@@ -128,6 +123,7 @@ def check_file_name(input_file):
         if type(i) == str:
             all_error.append(i)
     return all_error
+
 
 def check_data_error(table):
     all_error = []

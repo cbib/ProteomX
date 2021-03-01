@@ -38,15 +38,17 @@ print(SPLIT_FILE)
 
 # TODO: un peu laid ?
 def define_rule_all(rule_target):
-    before_divide_rule = ['mapped', 'preprocessed', 'reduced']
-    after_divide_rule = ['no_na', 'CV', 'set_comparison', 'log2FC', 'overlap', 'distribution', 'filtered_data', 'gene_name']
-
+    before_divide_rule = ['mapped', 'preprocessed', 'data_reduction']
+    after_divide_rule = ['missing_values', 'CV', 'set_comparison', 'log2FC', 'overlap', 'distribution', 'filtered_data', 'gene_name']
+    print(rule_target)
     if rule_target in before_divide_rule:
         return expand("data_folder/{file_id}/{target}/{file_name}.csv", file_id=FILE_ID, file_name=FILE_NAME, target=TARGET)
     elif rule_target == 'divided':
         return expand("data_folder/{file_id}/divided/{file_name}", file_id=FILE_ID, file_name=FILE_NAME, target=TARGET)
     elif rule_target in after_divide_rule:
         return expand("data_folder/{file_id}/{target}/{split_file}.csv", file_id=FILE_ID, split_file=SPLIT_FILE, target=TARGET)
+    else:
+        print("WARNING: no rule to produce output")
 
 
 rule all:
@@ -65,23 +67,24 @@ rule mapping:
 
 rule proteomic_preprocessing:
     input:
-         data=ancient("data_folder/{file_id}/mapped/{file_name}.csv")
+         data="data_folder/{file_id}/mapped/{file_name}.csv"
     output:
           filtered="data_folder/{file_id}/preprocessed/{file_name}.csv"
     shell:
          "./backend/preprocessing.py -i {input.data} -o {output.filtered} -f {FILE_ID} "
 
-rule reduce:
+rule data_reduction:
     input:
          data="data_folder/{file_id}/preprocessed/{file_name}.csv"
     output:
-          reduced="data_folder/{file_id}/reduced/{file_name}.csv"
+          reduced="data_folder/{file_id}/data_reduction/{file_name}.csv"
     shell:
          "./backend/reduce.py -i {input.data} -o {output} -f {FILE_ID} "
 
+
 rule divide_files:
     input:
-         data="data_folder/{file_id}/reduced/{file_name}.csv",
+         data="data_folder/{file_id}/data_reduction/{file_name}.csv",
          contrast_file="data_folder/{file_id}/mapping/comparison_{file_name}.csv"
     output:
           touch("data_folder/{file_id}/divided/{file_name}")
@@ -89,18 +92,18 @@ rule divide_files:
          "./backend/divide.py -i {input.data} -c {input.contrast_file} -o {output} -f {FILE_ID}"
 
 # SECOND PART
-rule no_na:
+rule missing_values:
     input:
          data="data_folder/{file_id}/divided/{split_file}.csv"
     output:
-          complete="data_folder/{file_id}/no_na/{split_file}_complete.csv",
-          filtered="data_folder/{file_id}/no_na/{split_file}.csv"
+          complete="data_folder/{file_id}/missing_values/{split_file}_complete.csv",
+          filtered="data_folder/{file_id}/missing_values/{split_file}.csv"
     shell:
          "./backend/clean_na.py -i {input.data} -oc {output.complete} -of {output.filtered} -f {FILE_ID} "
 
 rule CV:
     input:
-         data="data_folder/{file_id}/no_na/{split_file}.csv"
+         data="data_folder/{file_id}/missing_values/{split_file}.csv"
     output:
           complete="data_folder/{file_id}/CV/{split_file}_complete.csv",
           filtered="data_folder/{file_id}/CV/{split_file}.csv",

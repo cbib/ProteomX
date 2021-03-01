@@ -12,6 +12,9 @@ import argparse
 import pandas as pd
 import json
 import os
+# TODO  - à faire au moins avec paths
+import sys
+sys.path.extend(['/home/claire/Documents/ProteomX', '/home/claire/Documents/ProteomX/backend'])
 import helpers as h
 import paths
 
@@ -21,7 +24,7 @@ def get_args():
     parser.add_argument("--input_file", "-i", help='Input file (csv)')
     parser.add_argument("--output_file", "-o", help='Output file (csv)')
     parser.add_argument("--project", "-p", help='Project name')
-    parser.add_argument("--version", "-v", help='Analysis version name')
+    parser.add_argument("--file_id", "-f", help='Analysis version name')
     parser.add_argument("--config_file", "-c", help='Config file')
 
     args = parser.parse_args()
@@ -57,12 +60,12 @@ if __name__ == "__main__":
     args = get_args()
 
     if not args.config_file:
-        rule_params = h.load_json_parameter(args.project, args.version)
+        rule_params = h.load_json_parameter(args.file_id)
     else:
         with open(args.config_file) as f:
             rule_params = json.load(f)
 
-    logpath = os.path.join(paths.global_root_dir, paths.global_data_dir, args.project, args.version, 'log/convert_to_csv.log')
+    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/convert_to_csv.log')
     logger = h.get_logger(logpath)
     log_info_df()
 
