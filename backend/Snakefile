@@ -19,7 +19,7 @@ def get_file_name(folder, extension):
     return files
 
 
-SAMPLES = get_file_name(folder="file2csv", extension="csv")
+SAMPLES = get_file_name(folder="csv", extension="csv")
 
 if len(SAMPLES) == 0:
     print('WARNING: No files fond in {} folder.'.format(FILE_ID))
@@ -32,7 +32,7 @@ def define_rule_all(rule_target):
     """ Format of output files may varies for each rule. This functions returns the appropriate output for rule "all"
     according to the chosen target rule"""
 
-    rule_import = ['file2csv']
+    rule_import = ['csv']
     rules_preprocessing = ['mapped', 'preprocessed']
     rules_qc = ['missing_values', 'CV']
     rules_analysis = ['log2FC', 'overlap', 'ttest']
@@ -58,7 +58,7 @@ rule all:
 
 rule mapped:
     input:
-         data="data_folder/{file_id}/file2csv/{samples}.csv",
+         data="data_folder/{file_id}/csv/{samples}.csv",
          mapping="data_folder/{file_id}/mapping/mapping_{samples}.csv"
     output:
           mapped="data_folder/{file_id}/mapped/{samples}.csv"
@@ -85,8 +85,8 @@ rule missing_values:
     input:
          "data_folder/{file_id}/data_reduction/{samples}.csv"
     output:
-          complete="data_folder/{file_id}/missing_values/all_data_folder/{samples}.csv",
-          filtered="data_folder/{file_id}/missing_values/{samples}.csv"
+          complete="data_folder/{file_id}/missing_values/{samples}.csv",
+          filtered="data_folder/{file_id}/missing_values/{samples}_filtered.csv"
     shell:
          "./backend/clean_na.py -i {input} -oc {output.complete} -of {output.filtered} -f {FILE_ID} "
 
@@ -94,7 +94,7 @@ rule CV:
     input:
          "data_folder/{file_id}/missing_values/{samples}.csv"
     output:
-          complete="data_folder/{file_id}/CV/all_data_folder/{samples}.csv",
+          complete="data_folder/{file_id}/quality_check/{samples}.csv",
           filtered="data_folder/{file_id}/CV/{samples}.csv",
           fig=touch("data_folder/{file_id}/Figures/CV/{samples}.png")
     shell:

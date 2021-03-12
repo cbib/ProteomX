@@ -72,3 +72,22 @@ def merge_and_sort_results(df: pd.DataFrame, padj_df: pd.DataFrame, col_for_merg
     res = df.merge(padj_df, how='left', on=col_for_merge)
     res = res.sort_values(sort_df_by)
     return res
+
+
+def update_pvalue_specific_proteins(df: pd.DataFrame, analysis_test_type, specific_column) -> pd.DataFrame:
+    """
+    Update 'pvalue' 'padj' column values for proteins specific to one condition/group
+    """
+    if analysis_test_type == "right-tailed" or analysis_test_type == "left-tailed":
+        print("Updating overlap score for one-sided test")
+        mask = ((df[specific_column] == "specific") & (df['ratio'] == 1000))
+
+        df['pvalue'][mask] = np.where(mask, 0, 1)
+        df['padj'][mask] = np.where(mask, 0, 1)
+
+    elif analysis_test_type == "two-sided":
+        mask = ((df[specific_column] == "specific") & (df['ratio'] == 1000) | (df[specific_column] == "specific") & (df['ratio'] == 0.001))
+        df['pvalue'][mask] = 0
+        df['padj'][mask] = 0
+
+    return df

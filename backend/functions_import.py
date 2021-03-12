@@ -31,33 +31,32 @@ def get_sample_name(df, output):
         json.dump(sample_name, json_file, indent=True)
 
 
-def write_config_file(json_file, organism, group, max_na_prot,
-                      max_na_sample, reference):
-    # Take pre-write json file (input) . Rewrite json file (output) with given arguments
-    with open(json_file) as f:
-        data_parameters = json.load(f)
+def update_config(data_parameters, organism, max_na_prot,
+                      max_na_sample, reference, cv, specific_proteins):
 
     # rename organism
     if organism:
         data_parameters["gene_name"]["organism"] = organism
 
-    # replace max_na_percent value
+    # replace max_na_percent value for proteins
     if max_na_prot:
         data_parameters["missing_values"]["max_na_percent_proteins"] = max_na_prot
 
+    # replace max_na_percent value for samples
     if max_na_prot:
         data_parameters["missing_values"]["max_na_percent_samples"] = max_na_sample
 
     # rename reference groupe
-    # Attention !! Si reference est un argument, group doit être en argument aussi.
-    if type(reference) is int:
-        data_parameters["all"]["reference"] = group[reference]
-    elif type(reference) is str:
+    if reference:
         data_parameters["all"]["reference"] = reference
 
-    # save json file
-    with open(json_file, 'w+') as f:
-        json.dump(data_parameters, f, indent=True)
+    if cv:
+        data_parameters["CV"]["threshold"] = float(cv)
+
+    if specific_proteins:
+        data_parameters["all"]["specific_proteins"]["keep"] = bool(int(specific_proteins))
+
+    return data_parameters
 
 
 # Error

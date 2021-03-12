@@ -12,6 +12,7 @@ import operator
 from loguru import logger
 import paths
 import pandas as pd
+import numpy as np
 
 
 # TODO a réecrire
@@ -141,7 +142,6 @@ def as_python_object(dct):
 
 
 def dict_to_list(d, depth, col_name, list_col_prefix):
-
     for k, v in d.items():
         new_colname = col_name + '_' + str(k)
         list_col_prefix.append(new_colname)
@@ -150,8 +150,8 @@ def dict_to_list(d, depth, col_name, list_col_prefix):
             new_list_prefix = list_col_prefix
             dict_to_list(v, depth, new_colname, new_list_prefix)
 
-        #else:
-            #depth = 4
+        # else:
+        # depth = 4
     list_prefix = [x for x in list_col_prefix if len(x.split('_')) == depth]
 
     return list_prefix
@@ -191,6 +191,68 @@ def create_mapping(headers: list, group1: str, group1_name: list, group2: str, g
     df2 = pd.DataFrame(grp2, columns=headers)
 
     return pd.concat([df1, df2])
+
+
+def create_mapping_from_csv_file(csv_file: str) -> pd.DataFrame:
+    """
+    Input : path to tab separated file with first column: group names, and second column : label of column with
+    abundances values to analyse
+
+    Output : data frame with one sample per line + name of input samples + arbitrary replicate numbering
+    """
+
+    mapping_info = pd.read_csv(csv_file, sep="\t", header=0, index_col=None)
+
+    map = {'group': mapping_info.iloc[:,0],
+           'sample': np.nan,
+           'data_column': mapping_info.iloc[:,1]}
+
+    res = pd.DataFrame(data = map)
+
+    unique_group_df = res [~res .duplicated(subset=['group'], keep='first')]
+    unique_group = unique_group_df['group'].tolist()
+
+    group1_name = unique_group[0]
+    group2_name = unique_group[1]
+    group1_size = len(res[res['group'] == group1_name]) + 1
+    group2_size = len(res[res['group'] == group2_name]) + 1
+
+    group1_serie = pd.Series([i for i in range(1, group1_size)])
+    group2_serie = pd.Series([i for i in range(1, group2_size)])
+
+    sample_col = pd.concat([group1_serie, group2_serie], axis=0).reset_index(drop=True)
+    res["sample"] = sample_col
+
+    return res
+
+
+def create_mapping_from_txt_file(txt_file: str) -> pd.DataFrame:
+    """
+    Input : path to tab separated file with first column: group names, and second column : label of column with
+    abundances values to analyse
+
+    Output : data frame with one sample per line + name of input samples + arbitrary replicate numbering
+    """
+
+    mapping_info = pd.read_csv(txt_file, sep="\t", header=0, index_col=None)
+
+    map = {'group': mapping_info.iloc[:,0],
+           'columns': mapping_info.iloc[:,1]}
+
+    res = pd.DataFrame(data = map)
+    unique_group_df = res [~res .duplicated(subset=['group'], keep='first')]
+    unique_group = unique_group_df['group'].tolist()
+
+    group1_name = unique_group[0]
+    group2_name = unique_group[1]
+    group1_size = len(res[res['group'] == unique_group[0]]) + 1
+    group2_size = len(res[res['group'] == unique_group[1]]) + 1
+
+    group1 = [f'{group1_name}_{i}' for i in range(1, group1_size)]
+    group2 = [f'{group2_name}_{i}' for i in range(1, group2_size)]
+
+
+    return res
 
 
 def get_data_subset(df, values_cols_prefix, group_reference):

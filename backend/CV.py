@@ -79,6 +79,7 @@ if __name__ == "__main__":
     data_structure = h.load_json_data(args.file_id, filename, rule_params['all']['divide'])
 
     logger = h.get_logger(args.file_id, 'CV')
+    logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
 

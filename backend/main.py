@@ -2,11 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Pour les arguments renseigné, réécrit dans le mapping file les nouvelles valeurs.
-Dans le même temps, permet de créer le mapping file si l'argument "write_mapping = True"
 
-To run :
-python ./backend/main.py
 """
 
 import argparse
@@ -24,16 +20,10 @@ import json
 def get_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--analysis_ID", "-f", type=str, required=True, help="Unique ID of downloaded file")
+    parser.add_argument("--analysis_ID", "-a", type=str, required=True, help="Unique ID of downloaded file")
 
     # Create mapping file
-    parser.add_argument('--write_mapping', "-wm", action='store_true')
-
-    # Mandatory if write_mapping=True
-    parser.add_argument("--group", "-gr", nargs="+")
-    parser.add_argument('--group1', "-g1", nargs='+', help='A list of columns corresponding to the first group')
-    parser.add_argument('--group2', "-g2", nargs='+', help='A list of columns corresponding to the second group')
-    parser.add_argument('--json_samples', '-js', help="Path to json with sample kept/discarded by user")
+    parser.add_argument('--mapping_info', "-mi", help="csv file from frontend")
 
     # Update config file
     parser.add_argument("--update_config_file", "-upc", action='store_true')
@@ -44,11 +34,14 @@ def get_args():
     parser.add_argument("--max_na_percent_sample", "-nas", type=int,
                         help="remove samples with less than max_na_percent")
     parser.add_argument("--reference", "-ref", help="give the name of reference group")
+    parser.add_argument("--variation_coefficient", "-cv", type=float,
+                        help="Threshold value to apply after CV computations")
+    parser.add_argument("--specific_proteins", "-sp", choices=[0, 1], help="0 if discard specific proteins, 1 else")
     parser.add_argument("--contrast_matrix", "-cm", help="Contrast matrix to compare several groups of samples")
 
     # Snakemake
     parser.add_argument("--run", "-r", action='store_true')
-    parser.add_argument("--step", "-s", choices=["preprocessing", "quality_check", "diff_analysis"], type=str,
+    parser.add_argument("--step", "-s", choices=["preprocessing", "quality_check", "differential_analysis"], type=str,
                         help="step that need to be (re)run")
     parser.add_argument("--rerun", "-re", action='store_true', help="True if the step has already been computed")
     parser.add_argument("--dryrun", "-n", action='store_true', help="True for snakemake dryrun")
@@ -63,39 +56,57 @@ if __name__ == '__main__':
     pathlib.Path('data_folder/{}/log/'.format(args.analysis_ID)).mkdir(parents=True, exist_ok=True)
     logger = h.get_logger(args.analysis_ID, 'interface')
 
-    logging.info("Analysis for {} project.".format(args.analysis_ID))
-
-    # First step : create or find the file describing the analysis.
-    try:
-        path_to_json = os.path.join(paths.global_data_dir, args.analysis_ID, "analysis.json")
-        with open(path_to_json) as f:
-            analysis_description = json.load(f)
-    except FileNotFoundError:
-        path_to_json = os.path.join(paths.global_resources_dir, "analysis_template.json")
-        with open(path_to_json) as f:
-            analysis_description = json.load(f)
-        analysis_description = {}
-
     # Create mapping file
-    if args.write_mapping:
+    if args.mapping_info:
         logging.info("Creating mapping file.")
-        headers = ['group', 'sample', 'original column label']
-        df = helpers.create_mapping(headers, args.group1, args.group[0], args.group2, args.group[1])
+        map = helpers.create_mapping_from_csv_file(args.mapping_info)
 
         out_mapping = os.path.join(path_analysis, 'mapping')
         pathlib.Path(out_mapping).mkdir(parents=True, exist_ok=True)
-        out_mapping_file = os.path.join(out_mapping, "mapping_{}.csv".format(args.analysis_ID))
-        df.to_csv(out_mapping_file, sep='\t', index=False)
+
+        file_name = os.listdir(os.path.join(path_analysis, "csv"))[0]
+        out_mapping_file = os.path.join(out_mapping, "mapping_{}".format(file_name))
+
+        logging.info("Exporting mapping file to: {}".format(out_mapping_file))
+        map.to_csv(out_mapping_file, sep='\t', index=False)
 
     # Update config_file
     if args.update_config_file:
-        logging.info("Updating config_file.")
         path_to_json = path_analysis + '/config_file.json'
+        try:
+            with open(path_to_json) as f:
+                data_parameters = json.load(f)
+            logging.info("Updating config_file.")
+        except FileNotFoundError:
+            path_to_json_template = os.path.join(paths.global_resources_dir, 'TEMPLATE_config_file.json')
+            with open(path_to_json_template) as f:
+                data_parameters = json.load(f)
+            logging.info("Loading new config_file for this analysis.")
 
-        fi.write_config_file(json_file=path_to_json, organism=args.organism, group=args.group,
-                             max_na_prot=args.max_na_percent_protein,
-                             max_na_sample=args.max_na_percent_sample,
-                             reference=args.reference)
+        parameters_to_update = {"organism": args.organism,
+                                "max NAN per protein": args.max_na_percent_protein,
+                                "max NAN per sample": args.max_na_percent_sample,
+                                "CV": args.variation_coefficient,
+                                "Specific proteins": args.specific_proteins,
+                                "Reference": args.reference}
+
+        list_parameters = [v for v in parameters_to_update.values()]
+
+        if any(v is not None for v in list_parameters):
+            data_parameters = fi.update_config(data_parameters=data_parameters, organism=args.organism,
+                                               max_na_prot=args.max_na_percent_protein,
+                                               max_na_sample=args.max_na_percent_sample,
+                                               reference=args.reference,
+                                               cv=args.variation_coefficient,
+                                               specific_proteins=args.specific_proteins)
+            logging.info("New parameters:")
+            [logging.info("... {} : {}".format(k, v)) for k, v in parameters_to_update.items() if v]
+        else:
+            logging.info("No parameters changed")
+
+        # save json file
+        with open(path_to_json, 'w+') as f:
+            json.dump(data_parameters, f, indent=True)
 
     # Run analysis
     if args.run:
@@ -106,21 +117,21 @@ if __name__ == '__main__':
 
             target = {"preprocessing": ["mapped", "divided"],
                       "quality_check": ["missing_values", "CV"],
-                      "diff_analysis": ["log2FC", "gene_name"]}
+                      "differential_analysis": ["log2FC", "gene_name"]}
 
         elif args.reference:
             snakefile = "Snakefile"
 
             target = {"preprocessing": ["mapped", "data_reduction"],
                       "quality_check": ["missing_values", "CV"],
-                      "diff_analysis": ["log2FC", "gene_name"]}
+                      "differential_analysis": ["log2FC", "gene_name"]}
 
         else:
             snakefile = "Snakefile"
 
             target = {"preprocessing": ["mapped", "data_reduction"],
                       "quality_check": ["missing_values", "CV"],
-                      "diff_analysis": ["log2FC", "gene_name"]}
+                      "differential_analysis": ["log2FC", "gene_name"]}
 
         script = 'analyze_test_dataset_target_rule.sh'
         path_to_script = os.path.join(paths.global_scripts_dir, script)
@@ -130,7 +141,6 @@ if __name__ == '__main__':
         rerun = str(args.rerun)
         dry_run = str(args.dryrun)
 
-        print(dry_run)
         # TODO: stdout/stderr ?
         # Venv + snakemake ?
         p = subprocess.Popen(

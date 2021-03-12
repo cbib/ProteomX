@@ -6,7 +6,7 @@
     ],
     "values_cols_prefix": "VAL",
     "id_col": "Accession",
-    "reference": "_reference",
+    "reference": "Control",
     "divide": false,
     "specific_proteins": {
       "keep": true,
@@ -20,7 +20,7 @@
     "rows_to_skip": null
   },
   "mapping": {
-    "col_label": "original column label",
+    "col_label": "data_column",
     "col_for_mapping": [
       "group",
       "sample"
