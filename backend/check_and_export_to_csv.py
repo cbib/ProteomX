@@ -48,9 +48,12 @@ if __name__ == '__main__':
     errors["data_error"] = fi.check_data_error(df)
     logger.debug("... excel file loaded")
 
-    logger.debug("Creating folder for this analysis")
     path2analysis_folder = os.path.join(paths.global_data_dir, args.analysis_id)
-    os.mkdir(path2analysis_folder)
+    try:
+        os.mkdir(path2analysis_folder)
+        logger.debug("Creating folder for this analysis")
+    except FileExistsError:
+        logger.debug("Analysis folder already created")
 
     path2error_file = os.path.join(paths.global_data_dir, args.analysis_id, args.error_file)
 
