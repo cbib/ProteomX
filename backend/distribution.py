@@ -9,8 +9,6 @@ Remove proteins with number of NA above specified threshold
 """
 
 import argparse
-import logging.config
-import os
 import pandas as pd
 import numpy as np
 import helpers as h

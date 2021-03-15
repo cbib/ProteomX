@@ -11,9 +11,7 @@ import argparse
 import pandas as pd
 import paths
 import helpers as h
-import json
 from gprofiler import GProfiler
-from functools import reduce
 
 
 def get_args():

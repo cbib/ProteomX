@@ -46,7 +46,11 @@ if __name__ == "__main__":
     groups = h.get_data_subset(data_df, rule_params['all']['values_cols_prefix'], rule_params['all']['reference'])
 
     # compute statistics
-    ttest_pval = fa.compute_p_value(data_df, groups[0], groups[1], id_col, rule_params["ttest"]["equal_var"])
+    ttest_pval = fa.compute_p_value(data_df,
+                                    groups[0], groups[1],
+                                    id_col,
+                                    rule_params["ttest"]["equal_var"],
+                                    rule_params["ttest"]["test_type"])
     ttest_padj = fa.compute_p_adjusted(ttest_pval, rule_params["ttest"]["correction_method"])
     result_df = fa.merge_and_sort_results(data_df, ttest_padj, id_col, rule_params["ttest"]["sort_result_by"])
 

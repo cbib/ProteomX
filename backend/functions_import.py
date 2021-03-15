@@ -4,7 +4,6 @@
 # Fonction backend à l'initialisation
 
 import json
-import pandas as pd
 import re
 
 

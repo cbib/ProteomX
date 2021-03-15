@@ -87,6 +87,7 @@
     "noname": true
   },
   "ttest": {
+    "test_type": "right-tailed",
     "equal_var": false,
     "reference": "O60",
     "correction_method": "fdr_i",

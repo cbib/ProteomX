@@ -9,10 +9,8 @@ Apply reduction of abundance values for each protein per line or groups of sampl
 
 import argparse
 import pandas as pd
-import os
 import locale
 import numpy as np
-import paths
 import helpers as h
 
 

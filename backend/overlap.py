@@ -18,8 +18,6 @@ Works only if two groups of samples are present in the input_file dataframe (as 
 import argparse
 import pandas as pd
 import helpers as h
-import os
-import paths
 import functions_analysis as fa
 
 

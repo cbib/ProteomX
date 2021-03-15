@@ -10,7 +10,6 @@ Collection of functions used in data preprocessing:
 """
 
 import pandas as pd
-import re
 import numpy as np
 import collections
 import json
