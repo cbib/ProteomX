@@ -36,9 +36,10 @@ if __name__ == '__main__':
     logger.debug("Loading excel file...")
     try:
         df = pd.read_excel(args.input_file,
-                           sheet_name=1)
+                           sheet_name=1,
+                           engine="openpyxl")
 
-    except IndexError:
+    except ValueError:
         errors["sheet_error"] = ["no sheet in second position found"]
         logger.debug("Loading first worksheet")
         df = pd.read_excel(args.input_file,
