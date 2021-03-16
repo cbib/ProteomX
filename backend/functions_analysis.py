@@ -47,7 +47,7 @@ def overlap_asymmetric(x: np.array, y: np.array) -> int:
 
 
 def compute_p_value(df, group1, group2, id_col, equal_var, test_type):
-
+    scipy_eq = {"two-tailed": "two-sided", "right-tailed": "greater", "left-tailed": "less"}
     ttest_df = pd.DataFrame(columns=[id_col, 'pvalue'], index=df.index)
 
     for i in df.index.values:
@@ -58,7 +58,7 @@ def compute_p_value(df, group1, group2, id_col, equal_var, test_type):
         stat, p_value = stats.ttest_ind(group1_values, group2_values,
                                         equal_var=equal_var,
                                         nan_policy='omit',
-                                        alternative=test_type)
+                                        alternative=scipy_eq[test_type])
 
         ttest_df.loc[i] = [df.loc[i][id_col], p_value]
 
