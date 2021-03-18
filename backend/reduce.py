@@ -9,10 +9,8 @@ Apply reduction of abundance values for each protein per line or groups of sampl
 
 import argparse
 import pandas as pd
-import os
 import locale
 import numpy as np
-import paths
 import helpers as h
 
 
@@ -75,8 +73,7 @@ if __name__ == "__main__":
     data_structure = h.load_json_data(args.file_id, filename)
 
     # get logger
-    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/reduce_line.log')
-    logger = h.get_logger(logpath)
+    logger = h.get_logger(args.file_id, 'data_reduction')
 
     # load data
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)

@@ -1,96 +1,133 @@
 import os
 import pathlib
+import paths  # module with local absolute paths
 
 FILE_ID = config["file_id"]
 TARGET = config["target"]
 
-# create log folder
-pathlib.Path('data_folder/{}/log/'.format(FILE_ID)).mkdir(parents=True, exist_ok=True)
 
 def get_file_name(folder, extension):
-    path_to_data = "data_folder/{}/{}/".format(FILE_ID, folder)
+    """ Get stem name of all files in the required folder with the appropriate extension. """
+    path_to_data = os.path.join(paths.global_root_dir, "data_folder/{}/{}/".format(FILE_ID, folder))
+
     file_pattern = '{file_name}.' + extension
     files, = glob_wildcards(os.path.join(path_to_data, file_pattern))
 
     # ignore hidden files
     files = [f for f in files if not f.startswith('.')]
+
     return files
 
 
-FILE_NAME = get_file_name("csv", "csv")
+SAMPLES = get_file_name(folder="csv", extension="csv")
 
-if len(FILE_NAME) == 0:
-    print('WARNING')
-    print('No files fond in {} folder.'.format(FILE_ID))
+if len(SAMPLES) == 0:
+    print('WARNING: No files fond in {} folder.'.format(FILE_ID))
+else:
+    # create log folder
+    pathlib.Path('data_folder/{}/log/'.format(FILE_ID)).mkdir(parents=True, exist_ok=True)
+
+
+def define_rule_all(rule_target):
+    """ Format of output files may varies for each rule. This functions returns the appropriate output for rule "all"
+    according to the chosen target rule"""
+
+    rule_import = ['csv']
+    rules_preprocessing = ['mapped', 'preprocessed']
+    rules_qc = ['missing_values', 'CV']
+    rules_analysis = ['log2FC', 'overlap', 'ttest']
+
+    # all rules
+    rules = ['mapped', 'preprocessed', 'missing_values', 'CV', 'log2FC', 'overlap', 'ttest', 'gene_name']
+
+    if rule_target in rule_import:
+        print("Executing first rule of pipeline")
+        return expand("data_folder/{file_id}/raw_data/{samples}.csv", file_id=FILE_ID, samples=SAMPLES, target=TARGET)
+
+    elif rule_target in rules:
+        return expand("data_folder/{file_id}/{target}/{samples}.csv", file_id=FILE_ID, samples=SAMPLES, target=TARGET)
+
+    else:
+        print("WARNING \nNo rule to produce output: end rule was choosen by default.")
+        return expand("data_folder/{file_id}/ttest/{samples}.csv", file_id=FILE_ID, samples=SAMPLES, target=TARGET)
 
 
 rule all:
     input:
-         expand("data_folder/{file_id}/{target}/{file_name}.csv",
-                file_id=FILE_ID, file_name=FILE_NAME, target=TARGET)
+         define_rule_all(TARGET)
 
-rule mapping:
+rule mapped:
     input:
-         data="data_folder/{file_id}/csv/{file_name}.csv",
-         mapping="data_folder/{file_id}/mapping/mapping_{file_name}.csv"
+         data="data_folder/{file_id}/csv/{samples}.csv",
+         mapping="data_folder/{file_id}/mapping/mapping_{samples}.csv"
     output:
-          mapped="data_folder/{file_id}/mapped/{file_name}.csv"
+          mapped="data_folder/{file_id}/mapped/{samples}.csv"
     shell:
          "./backend/mapping.py -i {input.data} -o {output.mapped} -map {input.mapping} -f {FILE_ID} "
 
-rule proteomic_preprocessing:
+rule preprocessed:
     input:
-         data="data_folder/{file_id}/mapped/{file_name}.csv"
+         data="data_folder/{file_id}/mapped/{samples}.csv"
     output:
-          filtered="data_folder/{file_id}/preprocessed/{file_name}.csv"
+          filtered="data_folder/{file_id}/preprocessed/{samples}.csv"
     shell:
          "./backend/preprocessing.py -i {input.data} -o {output.filtered} -f {FILE_ID} "
 
-rule gene_name:
+rule data_reduction:
     input:
-         data="data_folder/{file_id}/preprocessed/{file_name}.csv"
+         data="data_folder/{file_id}/preprocessed/{samples}.csv"
     output:
-          filtered="data_folder/{file_id}/gene_name/{file_name}.csv"
-    shell:
-         "./backend/gene_name_gP.py -i {input.data} -o {output.filtered} -f {FILE_ID} "
-
-rule QC:
-    input:
-         "data_folder/{file_id}/preprocessed/{file_name}.csv"
-    output:
-          complete="data_folder/{file_id}/QC/all_data_folder/{file_name}.csv",
-          filtered="data_folder/{file_id}/QC/{file_name}.csv"
-    shell:
-         "./backend/clean_na.py -i {input} -oc {output.complete} -of {output.filtered} -f {FILE_ID} "
-
-rule reduce:
-    input:
-         data="data_folder/{file_id}/no_na/{file_name}.csv"
-    output:
-          reduced="data_folder/{file_id}/reduced/{file_name}.csv"
+          reduced="data_folder/{file_id}/data_reduction/{samples}.csv"
     shell:
          "./backend/reduce.py -i {input.data} -o {output} -f {FILE_ID} "
 
+rule missing_values:
+    input:
+         "data_folder/{file_id}/data_reduction/{samples}.csv"
+    output:
+          complete="data_folder/{file_id}/missing_values/{samples}.csv",
+          filtered="data_folder/{file_id}/missing_values/{samples}_filtered.csv"
+    shell:
+         "./backend/clean_na.py -i {input} -oc {output.complete} -of {output.filtered} -f {FILE_ID} "
+
+rule CV:
+    input:
+         "data_folder/{file_id}/missing_values/{samples}.csv"
+    output:
+          complete="data_folder/{file_id}/quality_check/{samples}.csv",
+          filtered="data_folder/{file_id}/CV/{samples}.csv",
+          fig=touch("data_folder/{file_id}/Figures/CV/{samples}.png")
+    shell:
+         "./backend/CV.py -i {input} -oc {output.complete} -of {output.filtered} -ofig {output.fig} -f {FILE_ID} "
+
 rule log2FC:
     input:
-         data="data_folder/{file_id}/reduced/{file_name}.csv"
+         data="data_folder/{file_id}/CV/{samples}.csv"
     output:
-          data="data_folder/{file_id}/log2FC/{file_name}.csv"
+          data="data_folder/{file_id}/log2FC/{samples}.csv"
     shell:
          "./backend/ratio.py -i {input.data} -o {output.data} -f {FILE_ID} "
 
 rule overlap:
     input:
-         data="data_folder/{file_id}/log2FC/{file_name}.csv",
+         data="data_folder/{file_id}/log2FC/{samples}.csv",
     output:
-          data="data_folder/{file_id}/overlap/{file_name}.csv"
+          data="data_folder/{file_id}/overlap/{samples}.csv"
     shell:
          "./backend/overlap.py -i {input.data} -o {output.data} -f {FILE_ID} "
 
 rule ttest:
     input:
-         data="data_folder/{file_id}/overlap/{file_name}.csv"
+         data="data_folder/{file_id}/overlap/{samples}.csv"
     output:
-          "data_folder/{file_id}/ttest/{file_name}.csv"
+          "data_folder/{file_id}/ttest/{samples}.csv"
     shell:
          "./backend/ttest.py -i {input.data} -o {output} -f {FILE_ID} "
+
+rule gene_name:
+    input:
+         data="data_folder/{file_id}/ttest/{samples}.csv"
+    output:
+          filtered="data_folder/{file_id}/gene_name/{samples}.csv"
+    shell:
+         "./backend/gene_name.py -i {input.data} -o {output.filtered} -f {FILE_ID} "

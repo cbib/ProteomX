@@ -17,8 +17,6 @@ import logging.config
 import pandas as pd
 import os
 import helpers as h
-import paths
-import re
 
 
 def get_args():
@@ -49,7 +47,6 @@ def get_comparison_data(contrast_df: pd.DataFrame) -> dict:
     for i in range(contrast_df.shape[0]):
         for j in range(contrast_df.shape[1]):
             if contrast_df.iloc[i][j] == 1:
-
                 reference = contrast_df.index[i]
                 condition = contrast_df.columns[j]
 
@@ -67,12 +64,10 @@ def get_base_df(df: pd.DataFrame, values_prefix: str) -> pd.DataFrame:
 
 
 def subset_df_for_each_comparison(df: pd.DataFrame, base_df: pd.DataFrame, comparisons_dict: dict):
-
     values_prefix = rule_params["all"]["values_cols_prefix"]
     abundance_df = df.filter(regex=values_prefix)
 
     for comparison in comparisons_dict.keys():
-
         # get abundances values for reference
         reference_abundances_col = abundance_df.filter(regex=comparisons_dict[comparison]["reference"])
 
@@ -102,8 +97,7 @@ if __name__ == "__main__":
     filename = h.filename(args.input_file)
 
     # get logger
-    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/divide.log')
-    logger = h.get_logger(logpath)
+    logger = h.get_logger(args.file_id, 'divide')
 
     # get data
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)

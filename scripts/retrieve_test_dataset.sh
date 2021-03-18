@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
-rm -rf ./data_folder/test/
-rm -rf ./data_folder/test_multiple
+rm -rf ./data_folder/dataset_test1/
 
+mkdir ./data_folder/dummy_data/
 
-mkdir ./data_folder/test/
-mkdir ./data_folder/test_multiple
-
-scp -r https://services.cbib.u-bordeaux.fr//prestations/ProteomX_sprint/test_multiple/ ./data_folder/
+scp -r https://services.cbib.u-bordeaux.fr//prestations/ProteomX_sprint/dataset_test1/ ./data_folder/
 
 
 

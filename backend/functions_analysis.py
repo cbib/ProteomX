@@ -46,8 +46,8 @@ def overlap_asymmetric(x: np.array, y: np.array) -> int:
     return overlap
 
 
-def compute_p_value(df, group1, group2, id_col, equal_var):
-
+def compute_p_value(df, group1, group2, id_col, equal_var, test_type):
+    scipy_eq = {"two-tailed": "two-sided", "right-tailed": "greater", "left-tailed": "less"}
     ttest_df = pd.DataFrame(columns=[id_col, 'pvalue'], index=df.index)
 
     for i in df.index.values:
@@ -55,7 +55,10 @@ def compute_p_value(df, group1, group2, id_col, equal_var):
         group2_values = np.array(group2.iloc[i], dtype=float)
 
         # two-tailed t-test
-        stat, p_value = stats.ttest_ind(group1_values, group2_values, equal_var=equal_var, nan_policy='omit')
+        stat, p_value = stats.ttest_ind(group1_values, group2_values,
+                                        equal_var=equal_var,
+                                        nan_policy='omit',
+                                        alternative=scipy_eq[test_type])
 
         ttest_df.loc[i] = [df.loc[i][id_col], p_value]
 
@@ -72,3 +75,22 @@ def merge_and_sort_results(df: pd.DataFrame, padj_df: pd.DataFrame, col_for_merg
     res = df.merge(padj_df, how='left', on=col_for_merge)
     res = res.sort_values(sort_df_by)
     return res
+
+
+def update_pvalue_specific_proteins(df: pd.DataFrame, analysis_test_type, specific_column) -> pd.DataFrame:
+    """
+    Update 'pvalue' 'padj' column values for proteins specific to one condition/group
+    """
+    if analysis_test_type == "right-tailed" or analysis_test_type == "left-tailed":
+        print("Updating overlap score for one-sided test")
+        mask = ((df[specific_column] == "specific") & (df['ratio'] == 1000))
+
+        df['pvalue'][mask] = np.where(mask, 0, 1)
+        df['padj'][mask] = np.where(mask, 0, 1)
+
+    elif analysis_test_type == "two-sided":
+        mask = ((df[specific_column] == "specific") & (df['ratio'] == 1000) | (df[specific_column] == "specific") & (df['ratio'] == 0.001))
+        df['pvalue'][mask] = 0
+        df['padj'][mask] = 0
+
+    return df

@@ -1,0 +1,128 @@
+{
+  "all": {
+    "metadata_col": [
+      "Accession",
+      "Description"
+    ],
+    "values_cols_prefix": "VAL",
+    "id_col": "Accession",
+    "reference": "Control",
+    "divide": false,
+    "specific_proteins": {
+      "keep": true,
+      "column_name": "specific"
+    }
+  },
+  "convert_to_csv": {
+    "worksheet": "Bilan_Protein",
+    "values_to_replace": null,
+    "index_col": 0,
+    "rows_to_skip": null
+  },
+  "mapping": {
+    "col_label": "data_column",
+    "col_for_mapping": [
+      "group",
+      "sample"
+    ]
+  },
+  "preprocessing": {
+    "unique_peptides": {
+      "column_id": "# Unique Peptides",
+      "to_discard": [
+        0,
+        1,
+        "0",
+        "1"
+      ]
+    },
+    "contaminant": {
+      "column_id": "Contaminant",
+      "to_discard": [
+        1,
+        "1",
+        true,
+        "True"
+      ]
+    },
+    "master_protein": {
+      "column_id": "Master",
+      "unique": "Master Protein"
+    }
+  },
+  "reduction": {
+    "on": "line",
+    "ddof": 0
+  },
+  "missing_values": {
+    "on": [
+      "group"
+    ],
+    "max_na_percent_proteins": 33,
+    "max_na_percent_samples": 80,
+    "output_json": "stats_samples.json"
+  },
+  "CV": {
+    "threshold": 0.5
+  },
+  "set_comparison": {
+    "plot": true,
+    "add_result_to_csv": true,
+    "venn_colors": [
+      "orange",
+      "darkblue"
+    ]
+  },
+  "ratio": {
+    "method": "geometric"
+  },
+  "overlap": {
+    "method": "symmetric"
+  },
+  "gene_name": {
+    "organism": "hsapiens",
+    "gene_name_source": ["gProfiler"],
+    "accession_source": ["Accession"],
+    "duplicate": true,
+    "noname": true
+  },
+  "ttest": {
+    "test_type": "right-tailed",
+    "equal_var": false,
+    "reference": "O60",
+    "correction_method": "fdr_i",
+    "sort_result_by": "padj"
+  },
+  "distribution": {
+    "test_type": "right-tailed"
+  },
+  "filtered_data": {
+    "subset_filters": {
+      "filtered": {
+        "column": [
+          "pvalue",
+          "score_overlap"
+        ],
+        "threshold": [
+          0.05,
+          0
+        ],
+        "mode": [
+          "<",
+          ">"
+        ]
+      },
+      "selected": {
+        "column": [
+          "score_overlap"
+        ],
+        "threshold": [
+          0
+        ],
+        "mode": [
+          ">"
+        ]
+      }
+    }
+  }
+}

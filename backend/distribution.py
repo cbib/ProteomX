@@ -9,8 +9,6 @@ Remove proteins with number of NA above specified threshold
 """
 
 import argparse
-import logging.config
-import os
 import pandas as pd
 import numpy as np
 import helpers as h
@@ -253,8 +251,7 @@ if __name__ == "__main__":
     args = get_args()
     rule_params = h.load_json_parameter(args.file_id)
 
-    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/distribution.log')
-    logger = h.get_logger(logpath)
+    logger = h.get_logger(args.file_id, 'distribution')
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
 

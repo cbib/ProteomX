@@ -2,10 +2,15 @@
 # -*- coding: utf-8 -*-
 # Credits: Claire Lescoat, Macha Nikolski, Benjamin Dartigues, Cédric Usureau, Aurélien Barré, Hayssam Soueidan
 
+
 import unittest
 from pandas.testing import assert_frame_equal
 
-import functions_quality_check as fp
+# TODO  - à faire au moins avec paths
+import sys
+sys.path.extend(['/home/claire/Documents/ProteomX', '/home/claire/Documents/ProteomX/backend'])
+
+import backend.functions_quality_check as fp
 import pandas as pd
 import numpy as np
 
@@ -52,28 +57,28 @@ class Test(unittest.TestCase):
         # assert_frame_equal(stats[['nan_percentage_P', 'nan_percentage_C']],
         #                    res[['nan_percentage_P', 'nan_percentage_C']])
 
-    def test_flag_row_with_nas(self):
-        res = fp.flag_row_with_nas(self.df_with_nans, self.stats_per_groups, self.max_na_group_percentage)
-
-        # test result instance
-        self.assertIsInstance(res, pd.DataFrame)
-
-        # test 'exclude_na' column encoding
-        in_exclude_na = [0, 1]
-
-        self.assertLessEqual(len(res['exclude_na'].value_counts()), 2)
-        for element in res['exclude_na']:
-            self.assertIn(element, in_exclude_na)
-
-        # test if values above threshold correspond to si les valeurs bien au dessus du seuils sont bien flaggées
-        for idx in self.stats_per_groups.index:
-            val1 = self.stats_per_groups.iloc[idx, 0]
-            val2 = self.stats_per_groups.iloc[idx, 1]
-
-            if val1 >= self.max_na_group_percentage or val2 >=self.max_na_group_percentage:
-                self.assertEqual(res.loc[idx, 'exclude_na'], 1)
-            else:
-                self.assertEqual(res.loc[idx, 'exclude_na'], 0)
+    # def test_flag_row_with_nas(self):
+    #     res = fp.flag_row_with_nas(self.df_with_nans, self.stats_per_groups, self.max_na_group_percentage)
+    #
+    #     # test result instance
+    #     self.assertIsInstance(res, pd.DataFrame)
+    #
+    #     # test 'exclude_na' column encoding
+    #     in_exclude_na = [0, 1]
+    #
+    #     self.assertLessEqual(len(res['exclude_na'].value_counts()), 2)
+    #     for element in res['exclude_na']:
+    #         self.assertIn(element, in_exclude_na)
+    #
+    #     # test if values above threshold correspond to si les valeurs bien au dessus du seuils sont bien flaggées
+    #     for idx in self.stats_per_groups.index:
+    #         val1 = self.stats_per_groups.iloc[idx, 0]
+    #         val2 = self.stats_per_groups.iloc[idx, 1]
+    #
+    #         if val1 >= self.max_na_group_percentage or val2 >= self.max_na_group_percentage:
+    #             self.assertEqual(res.loc[idx, 'exclude_na'], 1)
+    #         else:
+    #             self.assertEqual(res.loc[idx, 'exclude_na'], 0)
 
     def test_remove_flagged_rows(self):
         with self.assertRaises(KeyError):

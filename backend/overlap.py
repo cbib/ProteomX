@@ -18,8 +18,6 @@ Works only if two groups of samples are present in the input_file dataframe (as 
 import argparse
 import pandas as pd
 import helpers as h
-import os
-import paths
 import functions_analysis as fa
 
 
@@ -39,15 +37,14 @@ if __name__ == "__main__":
     rule_params = h.load_json_parameter(args.file_id)
     filename = h.filename(args.input_file)
 
-    logpath = os.path.join(paths.global_data_dir, args.file_id, 'log/overlap.log')
-    logger = h.get_logger(logpath)
+    logger = h.get_logger(args.file_id, 'overlap')
 
     data_df = pd.read_csv(args.input_file, header=0, index_col=None)
 
     # define two groups of patients
     # 'group1' (group[0]) is regarded as the reference in case of asymmetric computation
     # TODO: "reference" in rule "ratio" in the config file => move to rule "all"
-    groups = h.get_data_subset(data_df, rule_params['all']['values_cols_prefix'], rule_params['ratio']['reference'])
+    groups = h.get_data_subset(data_df, rule_params['all']['values_cols_prefix'], rule_params['all']['reference'])
 
     # Compute overlap per protein
     overlap_method = rule_params['overlap']['method']
