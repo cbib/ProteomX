@@ -41,7 +41,8 @@ def get_args():
 
     # Snakemake
     parser.add_argument("--run", "-r", action='store_true')
-    parser.add_argument("--step", "-s", choices=["preprocessing", "quality_check", "differential_analysis"], type=str,
+    parser.add_argument("--step", "-s",
+                        choices=["preprocessing", "quality_check", "differential_analysis", "post_treatment"], type=str,
                         help="step that need to be (re)run")
     parser.add_argument("--rerun", "-re", action='store_true', help="True if the step has already been computed")
     parser.add_argument("--dryrun", "-n", action='store_true', help="True for snakemake dryrun")
@@ -112,32 +113,42 @@ if __name__ == '__main__':
     if args.run:
         logging.info("Running analysis.")
 
+        # Following if / else loop : choose Snakefile depending on the experimental design. Two conditions ? basic
+        # "Snakefile". More than two conditions ? Handled by "Snakefile_multiple".
+        # target dictionary list for each step (preprocessing, quality_check, etc) the first AND the last rule to run.
+        # That way, analysis is done by telling Snakemake to run until last rule. But if one step is to be rerun,
+        # the script "force" Snakemake to re-create all the files by rerunning the first rule of the step : since
+        # upstream snakemake timestamps and files have been modified, it forces the rerun of (already done once)
+        # downstream pipeline.
         if args.contrast_matrix:
+            # TODO
             snakefile = "Snakefile_multiple"
 
             target = {"preprocessing": ["mapped", "divided"],
                       "quality_check": ["missing_values", "CV"],
-                      "differential_analysis": ["log2FC", "gene_name"]}
+                      "differential_analysis": ["log2FC", "ttest"],
+                      "post_treatment": ["gene_name", "enrichment"]}
 
         elif args.reference:
             snakefile = "Snakefile"
 
             target = {"preprocessing": ["mapped", "data_reduction"],
                       "quality_check": ["missing_values", "CV"],
-                      "differential_analysis": ["log2FC", "gene_name"]}
+                      "differential_analysis": ["log2FC", "ttest"],
+                      "post_treatment": ["gene_name", "enrichment"]}
 
         else:
             snakefile = "Snakefile"
 
             target = {"preprocessing": ["mapped", "data_reduction"],
                       "quality_check": ["missing_values", "CV"],
-                      "differential_analysis": ["log2FC", "gene_name"]}
+                      "differential_analysis": ["log2FC", "ttest"],
+                      "post_treatment": ["gene_name", "enrichment"]}
 
         script = 'analyze_test_dataset_target_rule.sh'
         path_to_script = os.path.join(paths.global_scripts_dir, script)
         logging.info("Script: {}".format(script))
 
-        # Parts of analysis. To be updated for longer or more complex snakefile
         rerun = str(args.rerun)
         dry_run = str(args.dryrun)
 
