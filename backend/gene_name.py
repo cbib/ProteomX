@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
     # get parameters
     rule_params = h.load_json_parameter(args.file_id)
-    organism = rule_params['gene_name']['organism']
+    organism = rule_params['all']['organism']
     sources_gn = rule_params['gene_name']['gene_name_source']  # gProfiler and/or annotation_file
     sources_accession = rule_params['gene_name']['accession_source']  # column(s) to use as input
     duplicate = rule_params['gene_name']['duplicate']

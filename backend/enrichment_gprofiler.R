@@ -18,25 +18,11 @@ parser <- ArgumentParser()
 
 ## Specify arguments
 parser$add_argument("-i", "--input_file", help = "input file")
-parser$add_argument("-o", "--output_file", help = "output file (without extension)")
+parser$add_argument("-o", "--output_file", help = "output file")
 parser$add_argument("-f", "--file_id", help = "Project ID")
 parser$add_argument("-wd", "--working_directory", help = "Working directory (ProteomX)")
 
 
-parser$add_argument("-m", "--max_result_to_plot", default=10, help = "Maximal number of significant terms to plots")
-parser$add_argument("-org", "--organism", default="hsapiens", help = "Query organism. hsapiens / mmusculus / other")
-parser$add_argument("-c", "--column", help = "Name of column with genes", default="gene_name")
-parser$add_argument("-s", "--sources", nargs="+", help = "Data sources for enrichment", default=c("GO:MF", "GO:BP", "GO:CC", "KEGG", "REAC", "TF", "MIRNA", "CORUM", "HP", "HPA", "WP"))
-parser$add_argument("-oq", "--ordered_query", action="store_true", help = "True if analysis to run as ordered query")
-parser$add_argument("-iea", "--exclude_iea", action="store_true", help = "True if analysis to run without GO electronic annotations (IEA)")
-
-parser$add_argument("-e", "--export_excel", action="store_false", help="Add -e option if you wish to export excel file with only relevant columns")
-parser$add_argument("-csv", "--export_csv", action="store_true", help="Add -e option if you wish to export excel file with only relevant columns")
-parser$add_argument("-r", "--export_rdata", action="store_true", help="Add -r option if you wish to export analysis results as RData")
-parser$add_argument("-pl", "--plot_results", action="store_false", help = "By default, plot results as dotplot")
-
-parser$add_argument("-pv", "--pvalue", default="1", help = "Filter data on p-value (keeping inferior to given value)")
-parser$add_argument("-l", "--log2fc", default="0", help = "Filter data on log2FC (keeping superior to given value)")
 
 ## Get args
 args <- parser$parse_args()
@@ -57,7 +43,7 @@ enrichment_dotplot_from_gProfiler <- function(df_to_plot, significance_threshold
   # get first only the first fifteen
   print(glue("... keepin only {nterms} first terms"))
   df <- utils::tail(df, as.numeric(nterms))
-
+  
   df$term_name <- factor(df$term_name, levels=unique(df$term_name))
   
   # Barcharts
@@ -114,7 +100,7 @@ cat("...DONE \n")
 cat("Loading parameters...GPROFILER\n")
 enrichment_parameters <- rule_params$enrichment
 
-organism = enrichment_parameters$organism
+organism = rule_params$all$organism
 cat(glue("... organism: {organism}"), .sep="\n")
 
 column_with_genes_id = enrichment_parameters$column_with_gene
@@ -134,57 +120,70 @@ cat("Loading parameters...DATA\n")
 subset_query = enrichment_parameters$subset_query
 cat(glue("... subsetting data: {subset_query}"), .sep="\n")
 if (subset_query){
-  pvalue = enrichment_parameters$subset_params$pvalue
-  absolute_value_log2FC = enrichment_parameters$subset_params$abslog2fc
+  threshold_pvalue = enrichment_parameters$subset_params$pvalue
+  cat(glue("... excluding protein on pvalue: {threshold_pvalue}"), .sep="\n")
+  threshold_padj = enrichment_parameters$subset_params$padj
+  cat(glue("... excluding protein on padj: {threshold_padj}"), .sep="\n")
+  threshold_absolute_value_log2FC = enrichment_parameters$subset_params$abslog2fc
+  cat(glue("... excluding protein on abs(log2FoldChange): {threshold_absolute_value_log2FC}"), .sep="\n")
+  gene_bank = enrichment_parameters$subset_params$gene_bank
 }
 
 
 cat("Loading parameters...EXPORT\n")
 cat("... exporting")
-excel_export = enrichment_parameters$exports$excel
-if (excel_export){
+export_excel = enrichment_parameters$exports$excel
+if (export_excel){
   cat(" excel +")
 }
-csv_export = enrichment_parameters$exports$csv
-if (csv_export){
+export_csv = enrichment_parameters$exports$csv
+if (export_csv){
   cat(" csv +")
 }
-rdata_export = enrichment_parameters$exports$rdata
-if (rdata_export){
-  cat(" rdata +")
+export_rdata = enrichment_parameters$exports$rdata
+if (export_rdata){
+  cat(" rdata ")
 }
-plots_export = enrichment_parameters$exports$plots
-if (plots_export){
-  cat(" plots\n")
+export_plots = enrichment_parameters$exports$plots
+if (export_plots){
+  cat("+ plots\n")
   max_result_to_plot = enrichment_parameters$max_result_to_plot
   cat(glue("... max_result_to_plot: {max_result_to_plot}"), .sep="\n")
 }
-cat("Loading parameters...DONE\n")
+cat("\nLoading parameters...DONE\n")
 cat("\n")
 
 
-
-
 cat("################### ANALYSIS ################### \n")
+
 if (subset_query){
+  cat(glue("Filtering data frame"), .sep="\n")
   df <- df %>%
-    filter(pvalue < as.numeric(enrichment_parameters$subset_params$pvalue))
+    dplyr::filter(if (threshold_pvalue) pvalue < as.numeric(threshold_pvalue) else TRUE) %>%
+    dplyr::filter(if (threshold_padj) padj < as.numeric(threshold_padj) else TRUE) %>%
+    dplyr::filter(if (threshold_absolute_value_log2FC) abs(log2FoldChange) > as.numeric(threshold_absolute_value_log2FC) else TRUE) %>%
+    dplyr::filter(if (gene_bank == "Swiss-Prot") gene_name_bank %in% c("UNIPROTSWISSPROT_ACC,UNIPROT_GN_ACC", "UNIPROTSWISSPROT_ACC", "Swiss-Prot") else TRUE) %>%
+    droplevels()
 }
-print(sds)
+
+max_pvalue <- max(df$pvalue, na.rm = TRUE)
+max_padj <- max(df$padj, na.rm = TRUE)
+min_abslog2FC <- min(abs(df$log2FoldChange), na.rm = TRUE)
+
+cat(glue("max value (pvalue): {max_pvalue}"), .sep="\n")
+cat(glue("max value (padj): {max_padj}"), .sep="\n")
+cat(glue("min absolute value (log2FoldChange): {min_abslog2FC}"), .sep="\n")
+
 
 ngenes = dim(df)[1]
 cat(glue("Number of query genes: {ngenes}"), .sep="\n")
 
-cat(glue("Query genes from \'{args$column}\' column"), .sep="\n")
-query_list <- df[,c(args$column)]
-
-# enrichment analysis
-sources <- args$sources
+query_list <- df[,c(column_with_genes_id)]
 
 # dummy analysis to get ambiguous genes
 cat("Mapping input genes to ENSG identifiers \n")
 init <- gost(query = query_list,
-             organism = args$organism,
+             organism = organism,
              user_threshold = 0.05,
              significant = TRUE,
              correction_method ='fdr',
@@ -206,25 +205,25 @@ for (s in sources){
   output_xlsx <- paste0(output_file, '.xlsx')
   output_rds <- paste0(output_file, '.rds')
   output_dotplot <- paste0(output_file, '_dotplot.png')
-
+  
   # run gProfiler
   gostres <- gost(query = query_list,
-                  organism = args$organism,
+                  organism = organism,
                   user_threshold = 0.05,
                   significant = TRUE,
                   correction_method ='fdr',
                   source=s,
                   evcodes = TRUE,
-                  ordered_query = args$ordered_query,
-                  exclude_iea = args$exclude_iea)
+                  ordered_query = ordered_query,
+                  exclude_iea = exclude_iea)
   
   # get results as a data frame
   res <- as.data.frame(gostres$result)
   
   if (dim(res)[1] > 0){
     print(glue("At least one significant result!"))
-
-    if (args$export_rdata){
+    
+    if (export_rdata){
       print(glue("saving results as RData"))
       saveRDS(gostres, file = output_rds)
     }
@@ -234,12 +233,12 @@ for (s in sources){
     res$parents <- NULL # column parents is a list of list ? Mess with dataframe format
     res$negative_log10_of_adjusted_p_value <- -log10(res$p_value)
     
-    if (args$export_csv){
+    if (export_csv){
       print("saving all results as csv")
       write.csv(res, output_csv_complete, row.names=FALSE)
     }
-
-    if (args$export_excel){
+    
+    if (export_excel){
       print(glue("Exporting relevant results as excel"))
       
       print(glue("... subsetting data frame"))
@@ -259,7 +258,7 @@ for (s in sources){
       
       nlines <- nrow(res_filtered) + 1
       icol <- grep("negative_log10_of_adjusted_padj", colnames(res_filtered))
-
+      
       print(glue("... adding conditional formatting"))
       conditionalFormatting(wb, "enrichment_results", 
                             cols = icol, 
@@ -272,10 +271,10 @@ for (s in sources){
                             border = FALSE)
       class(res_filtered$negative_log10_of_adjusted_padj) <- "number"
       setColWidths(wb, "enrichment_results", cols = 1:ncol(res_filtered), widths = "auto")
-
+      
       print(glue("... writing excel file"))
       x <- saveWorkbook(wb, output_xlsx, overwrite = TRUE, returnValue = TRUE)
-
+      
       if (x){
         print(glue("... DONE"))
       } else {
@@ -283,13 +282,16 @@ for (s in sources){
       }
       
     }
-    if (args$plot_results){
+    if (export_plots){
       # plot enrich plot like with DOSE
-      enrichment_dotplot_from_gProfiler(res, 0.05, args$max_result_to_plot, glue("{file_name} - {s}"), output_dotplot)
+      enrichment_dotplot_from_gProfiler(res, 0.05, max_result_to_plot, glue("{file_name} - {s}"), output_dotplot)
     }
   } else {
     print(glue("No result for this source"))
   }
 }
 
+# Snakemake 
+final <- data.frame ("all done!")
+write.csv(final, args$output_file, row.names=FALSE)
 

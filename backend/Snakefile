@@ -82,8 +82,8 @@ rule missing_values:
     input:
          "data_folder/{file_id}/data_reduction/{samples}.csv"
     output:
-          complete="data_folder/{file_id}/missing_values/{samples}.csv",
-          filtered="data_folder/{file_id}/missing_values/{samples}_filtered.csv"
+          complete="data_folder/{file_id}/missing_values/{samples}_complete.csv",
+          filtered="data_folder/{file_id}/missing_values/{samples}.csv"
     shell:
          "./backend/clean_na.py -i {input} -oc {output.complete} -of {output.filtered} -f {FILE_ID} "
 
@@ -133,6 +133,6 @@ rule enrichment:
     input:
          data="data_folder/{file_id}/gene_name/{samples}.csv"
     output:
-          filtered="data_folder/{file_id}/enrichment/{samples}.csv"
+          filtered=touch("data_folder/{file_id}/enrichment/{samples}.csv")
     shell:
          "./backend/enrichment_gprofiler.R -i {input.data} -o {output.filtered} -f {FILE_ID} -wd {WORKDIR}"
