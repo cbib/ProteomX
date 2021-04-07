@@ -54,16 +54,12 @@ def compute_p_value(df, group1, group2, id_col, equal_var, test_type):
         group1_values = np.array(group1.iloc[i], dtype=float)
         group2_values = np.array(group2.iloc[i], dtype=float)
 
-        print(group1_values)
-        print(group2_values)
-
-        # scipy version 1.6.1 : nan polici = 'omit' not supported by one sided alternatives
-        # nan removed from numpy arrays
-
         if np.isnan(group1_values).all() or np.isnan(group2_values).all():
             # specific protein: no pvalue
             continue
 
+        # scipy version 1.6.1 : nan policy = 'omit' not supported by one sided alternatives
+        # nan removed from numpy arrays
         group1_values_no_nan= group1_values[np.logical_not(np.isnan(group1_values))]
         group2_values_no_nan= group2_values[np.logical_not(np.isnan(group2_values))]
 

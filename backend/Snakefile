@@ -29,10 +29,10 @@ else:
 
 
 def define_rule_all(rule_target):
-    """ Format of output files may varies for each rule. This functions returns the appropriate output for rule "all"
+    """ 
+    Format of output files may varies for each rule. This functions returns the appropriate output for rule "all"
     according to the chosen target rule"""
 
-    #rule_import = ['csv']
     rules_preprocessing = ['mapped', 'preprocessed']
     rules_qc = ['missing_values', 'CV']
     rules_analysis = ['log2FC', 'overlap', 'ttest']

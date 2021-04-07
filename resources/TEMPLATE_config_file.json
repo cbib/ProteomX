@@ -59,7 +59,7 @@
     "on": [
       "group"
     ],
-    "max_na_percent_proteins": 33,
+    "max_na_percent_proteins": 34,
     "max_na_percent_samples": 80,
     "output_json": "stats_samples.json"
   },
@@ -89,7 +89,6 @@
   "ttest": {
     "test_type": "two-tailed",
     "equal_var": false,
-    "reference": "O60",
     "correction_method": "fdr_i",
     "sort_result_by": "padj"
   },
@@ -107,7 +106,7 @@
   	"subset_params": {
   		"pvalue": 0.05,
       "padj":0.05,
-  		"abslog2fc": 0,
+  		"abslog2fc": false,
       "gene_bank":"Swiss-Prot"
   	},
   	"exports":
