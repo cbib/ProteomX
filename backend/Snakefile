@@ -4,7 +4,7 @@ import paths  # module with local absolute paths
 
 FILE_ID = config["file_id"]
 TARGET = config["target"]
-
+WORKDIR = os.getcwd()
 
 def get_file_name(folder, extension):
     """ Get stem name of all files in the required folder with the appropriate extension. """
@@ -29,27 +29,24 @@ else:
 
 
 def define_rule_all(rule_target):
-    """ Format of output files may varies for each rule. This functions returns the appropriate output for rule "all"
+    """ 
+    Format of output files may varies for each rule. This functions returns the appropriate output for rule "all"
     according to the chosen target rule"""
 
-    rule_import = ['csv']
     rules_preprocessing = ['mapped', 'preprocessed']
     rules_qc = ['missing_values', 'CV']
     rules_analysis = ['log2FC', 'overlap', 'ttest']
+    rules_post_treatment =  ['gene_name', 'enrichment']
 
     # all rules
-    rules = ['mapped', 'preprocessed', 'missing_values', 'CV', 'log2FC', 'overlap', 'ttest', 'gene_name']
+    rules = [*rules_preprocessing, *rules_qc, *rules_analysis, *rules_post_treatment]
 
-    if rule_target in rule_import:
-        print("Executing first rule of pipeline")
-        return expand("data_folder/{file_id}/raw_data/{samples}.csv", file_id=FILE_ID, samples=SAMPLES, target=TARGET)
-
-    elif rule_target in rules:
+    if rule_target in rules:
         return expand("data_folder/{file_id}/{target}/{samples}.csv", file_id=FILE_ID, samples=SAMPLES, target=TARGET)
 
     else:
         print("WARNING \nNo rule to produce output: end rule was choosen by default.")
-        return expand("data_folder/{file_id}/ttest/{samples}.csv", file_id=FILE_ID, samples=SAMPLES, target=TARGET)
+        return expand("data_folder/{file_id}/enrichment/{samples}.csv", file_id=FILE_ID, samples=SAMPLES, target=TARGET)
 
 
 rule all:
@@ -85,8 +82,8 @@ rule missing_values:
     input:
          "data_folder/{file_id}/data_reduction/{samples}.csv"
     output:
-          complete="data_folder/{file_id}/missing_values/{samples}.csv",
-          filtered="data_folder/{file_id}/missing_values/{samples}_filtered.csv"
+          complete="data_folder/{file_id}/missing_values/{samples}_complete.csv",
+          filtered="data_folder/{file_id}/missing_values/{samples}.csv"
     shell:
          "./backend/clean_na.py -i {input} -oc {output.complete} -of {output.filtered} -f {FILE_ID} "
 
@@ -131,3 +128,11 @@ rule gene_name:
           filtered="data_folder/{file_id}/gene_name/{samples}.csv"
     shell:
          "./backend/gene_name.py -i {input.data} -o {output.filtered} -f {FILE_ID} "
+
+rule enrichment:
+    input:
+         data="data_folder/{file_id}/gene_name/{samples}.csv"
+    output:
+          filtered=touch("data_folder/{file_id}/enrichment/{samples}.csv")
+    shell:
+         "./backend/enrichment_gprofiler.R -i {input.data} -o {output.filtered} -f {FILE_ID} -wd {WORKDIR}"

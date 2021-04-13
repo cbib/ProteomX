@@ -54,8 +54,17 @@ def compute_p_value(df, group1, group2, id_col, equal_var, test_type):
         group1_values = np.array(group1.iloc[i], dtype=float)
         group2_values = np.array(group2.iloc[i], dtype=float)
 
+        if np.isnan(group1_values).all() or np.isnan(group2_values).all():
+            # specific protein: no pvalue
+            continue
+
+        # scipy version 1.6.1 : nan policy = 'omit' not supported by one sided alternatives
+        # nan removed from numpy arrays
+        group1_values_no_nan= group1_values[np.logical_not(np.isnan(group1_values))]
+        group2_values_no_nan= group2_values[np.logical_not(np.isnan(group2_values))]
+
         # two-tailed t-test
-        stat, p_value = stats.ttest_ind(group1_values, group2_values,
+        stat, p_value = stats.ttest_ind(group1_values_no_nan, group2_values_no_nan,
                                         equal_var=equal_var,
                                         nan_policy='omit',
                                         alternative=scipy_eq[test_type])
@@ -81,14 +90,21 @@ def update_pvalue_specific_proteins(df: pd.DataFrame, analysis_test_type, specif
     """
     Update 'pvalue' 'padj' column values for proteins specific to one condition/group
     """
-    if analysis_test_type == "right-tailed" or analysis_test_type == "left-tailed":
-        print("Updating overlap score for one-sided test")
+    if analysis_test_type == "right-tailed":
+        print("Updating overlap score for right-tailed test")
         mask = ((df[specific_column] == "specific") & (df['ratio'] == 1000))
 
         df['pvalue'][mask] = np.where(mask, 0, 1)
         df['padj'][mask] = np.where(mask, 0, 1)
 
-    elif analysis_test_type == "two-sided":
+    elif analysis_test_type == "left-tailed":
+        print("Updating overlap score for left-tailed test")
+        mask = ((df[specific_column] == "specific") & (df['ratio'] == 0.001))
+
+        df['pvalue'][mask] = np.where(mask, 0, 1)
+        df['padj'][mask] = np.where(mask, 0, 1)
+
+    elif analysis_test_type == "two-tailed":
         mask = ((df[specific_column] == "specific") & (df['ratio'] == 1000) | (df[specific_column] == "specific") & (df['ratio'] == 0.001))
         df['pvalue'][mask] = 0
         df['padj'][mask] = 0
