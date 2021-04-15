@@ -38,12 +38,15 @@ def define_rule_all(rule_target):
     rules_analysis = ['log2FC', 'overlap', 'ttest']
     rules_post_treatment =  ['gene_name', 'enrichment']
 
+    steps = ['differential_analysis']
+
     # all rules
     rules = [*rules_preprocessing, *rules_qc, *rules_analysis, *rules_post_treatment]
 
     if rule_target in rules:
         return expand("data_folder/{file_id}/{target}/{samples}.csv", file_id=FILE_ID, samples=SAMPLES, target=TARGET)
-
+    if rule_target in steps:
+        return expand("data_folder/{file_id}/{target}/{samples}.done", file_id=FILE_ID, samples=SAMPLES, target=TARGET)
     else:
         print("WARNING \nNo rule to produce output: end rule was choosen by default.")
         return expand("data_folder/{file_id}/enrichment/{samples}.csv", file_id=FILE_ID, samples=SAMPLES, target=TARGET)
@@ -53,6 +56,7 @@ rule all:
     input:
          define_rule_all(TARGET)
 
+# Preprocessing
 rule mapped:
     input:
          data="data_folder/{file_id}/csv/{samples}.csv",
@@ -78,6 +82,7 @@ rule data_reduction:
     shell:
          "./backend/reduce.py -i {input.data} -o {output} -f {FILE_ID} "
 
+# Quality control
 rule missing_values:
     input:
          "data_folder/{file_id}/data_reduction/{samples}.csv"
@@ -96,6 +101,15 @@ rule CV:
           fig=touch("data_folder/{file_id}/Figures/CV/{samples}.png")
     shell:
          "./backend/CV.py -i {input} -oc {output.complete} -of {output.filtered} -ofig {output.fig} -f {FILE_ID} "
+
+# Differential analysis
+rule data_for_plots:
+    input:
+         "data_folder/{file_id}/CV/{samples}.csv"
+    output:
+          "data_folder/{file_id}/data_for_plots/{samples}.csv"
+    shell:
+         "./backend/export_data_for_plots.py -i {input} -o {output} -f {FILE_ID} "
 
 rule log2FC:
     input:
@@ -120,6 +134,15 @@ rule ttest:
           "data_folder/{file_id}/ttest/{samples}.csv"
     shell:
          "./backend/ttest.py -i {input.data} -o {output} -f {FILE_ID} "
+
+rule differential_analysis:
+    input:
+         stats="data_folder/{file_id}/ttest/{samples}.csv",
+         plots="data_folder/{file_id}/data_for_plots/{samples}.csv"
+    output:
+          "data_folder/{file_id}/differential_analysis/{samples}.done"
+    shell:
+         "touch {output}"
 
 rule gene_name:
     input:
