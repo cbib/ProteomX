@@ -338,3 +338,8 @@ def remove_absent_groups(df: pd.DataFrame, groups_list: list, values_cols_prefix
 
     filtered_groups_list = [g for g in groups_list if g not in groups_to_remove]
     return filtered_groups_list
+
+
+def merge_dataframes(*args, on, how) -> pd.DataFrame:
+    res = reduce(lambda  left,right: pd.merge(left,right,on=on, how=how), *args)
+    return res

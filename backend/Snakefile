@@ -127,7 +127,7 @@ rule overlap:
     shell:
          "./backend/overlap.py -i {input.data} -o {output.data} -f {FILE_ID} "
 
-rule ttest:
+rule statistical_analysis:
     input:
          data="data_folder/{file_id}/overlap/{samples}.csv"
     output:
