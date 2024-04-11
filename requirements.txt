@@ -23,7 +23,7 @@ greenlet==0.4.15
 grequests==0.4.0
 gseapy==0.9.17
 html5lib==1.0.1
-idna==2.8
+idna==3.7
 imagesize==1.2.0
 importlib-metadata==1.4.0
 interval==1.0.0
