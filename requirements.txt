@@ -78,7 +78,7 @@ soupsieve==1.9.4
 statsmodels==0.11.1
 suds-jurko==0.6
 tornado==6.3.3
-tqdm==4.7.2
+tqdm==4.66.3
 traitlets==4.3.3
 urllib3==1.26.18
 virtualenv==16.7.9
