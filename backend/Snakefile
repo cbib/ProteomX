@@ -1,0 +1,320 @@
+import os
+import pathlib
+import paths
+
+ANALYSIS = config["analysis"]
+TARGET = config["target"]
+WORKDIR = os.getcwd()
+
+# create log folder
+pathlib.Path('data/{}/log/'.format(ANALYSIS)).mkdir(parents=True, exist_ok=True)
+
+
+def get_file_name(folder, extension):
+    path_to_data = os.path.join(paths.global_root_dir, "data/{}/{}/".format(ANALYSIS, folder))
+
+    file_pattern = '{file_name}' + extension
+    files, = glob_wildcards(os.path.join(path_to_data, file_pattern))
+
+    # ignore hidden files
+    files = [f for f in files if not f.startswith('.')]
+
+    return files
+
+
+# DEFINITION DES WILDCARDS
+FILE_NAME = get_file_name("csv", ".csv")
+if len(FILE_NAME) == 0:
+    FILE_NAME = get_file_name("xlsx", ".xlsx")
+
+#DATA = get_file_name("xlsx", ".xlsx") # nécessaire si un fichier excel est rajouté après une première analyse
+
+# get files after "divide" rule : two conditions per file only
+SPLIT_FILE_ALL = get_file_name("divided", ".csv")
+
+# remove base file (result of touch)
+SPLIT_FILE = [f for f in SPLIT_FILE_ALL if f not in FILE_NAME]
+if len(SPLIT_FILE) == 0:
+    SPLIT_FILE = get_file_name("xlsx", ".xlsx")
+
+COMP_FILES = get_file_name("comparaisons/compared_selected", ".csv")
+COMP_FILES = [f for f in COMP_FILES if 'allproteins' in f]
+
+
+
+def define_rule_all(rule_target):
+    convert_file = ['csv']
+    # puty 'csv' again in case starting at rule 'mapped', 'preprocessed', 'reduced'
+    before_divide_rule = ['csv', 'mapped', 'preprocessed', 'reduced']
+    after_divide_rule = ['missing_values', 'CV', 
+                        'set_comparison', 'log2FC', 'overlap', 
+                        'statistics', 'distribution',
+                         'filtered_data', 'gene_name', "enrichment", 'export/stats']
+    export_rules = ['export/selection_from_stats', 'export/selection_from_gn']
+    comparisons_rules = ['comparaisons_upset/filtered', 'comparaisons_upset/selected']
+    figures_globales = ['analyse_exploratoire_tous_echantillons']
+    figures = ['heatmaps_exploratoire', 'acp_exploratoire', 'volcano_plot', 'heatmaps_post_treatment', 'acp_post_treatment']
+
+
+    if rule_target in convert_file:
+        return expand("data/{analysis}/csv/{file_name}.csv", analysis=ANALYSIS, file_name=FILE_NAME)
+    elif rule_target in before_divide_rule:
+        return expand("data/{analysis}/{target}/{file_name}.csv", analysis=ANALYSIS, file_name=FILE_NAME,
+                      target=TARGET)
+    elif rule_target == 'divided':
+        return expand("data/{analysis}/divided/{file_name}", analysis=ANALYSIS, file_name=FILE_NAME, target=TARGET)
+    elif rule_target in after_divide_rule:
+        return expand("data/{analysis}/{target}/{split_file}.csv", analysis=ANALYSIS, split_file=SPLIT_FILE,
+                      target=TARGET)
+    elif rule_target in export_rules:
+        print(expand("data/{analysis}/{target}/", analysis=ANALYSIS, target=TARGET))
+        print(WORKDIR)
+        return expand("data/{analysis}/{target}/", analysis=ANALYSIS, target=TARGET)
+    elif rule_target in comparisons_rules:
+        return expand("data/{analysis}/comparaisons_upset/selected/{comp_file}.png", comp_file=COMP_FILES,
+                      analysis=ANALYSIS, target=TARGET)
+    elif rule_target in figures:
+        return expand("data/{analysis}/Figures/{target}/{split_file}.png",split_file=SPLIT_FILE,
+            analysis=ANALYSIS,target=TARGET)
+    elif rule_target in figures_globales:
+        return expand("data/{analysis}/Figures/{target}/{file_name}",file_name=FILE_NAME,
+            analysis=ANALYSIS,target=TARGET)
+    else:
+        print("WARNING \nNo rule to produce output")
+
+
+rule all:
+    input:
+         define_rule_all(TARGET)
+
+
+rule convert_to_csv:
+    input:
+        data="data/{analysis}/xlsx/{file_name}.xlsx"
+    output:
+        csv="data/{analysis}/csv/{file_name}.csv"
+    shell:
+        "backend/excel_to_csv.py -i {input.data} -o {output.csv} -f {ANALYSIS} "
+
+rule mapping:
+    input:
+         data="data/{analysis}/csv/{file_name}.csv",
+         mapping="data/{analysis}/mapping/mapping_{file_name}.csv"
+    output:
+          mapped="data/{analysis}/mapped/{file_name}.csv"
+    shell:
+         "backend/mapping.py -i {input.data} -o {output.mapped} -map {input.mapping} -f {ANALYSIS} "
+
+rule proteomic_preprocessing:
+    input:
+         data=ancient("data/{analysis}/mapped/{file_name}.csv")
+    output:
+          filtered="data/{analysis}/preprocessed/{file_name}.csv"
+    shell:
+         "backend/preprocessing.py -i {input.data} -o {output.filtered} -f {ANALYSIS} "
+
+rule analyse_exploratoire:
+    input:
+         data="data/{analysis}/preprocessed/{file_name}.csv"
+    output:
+          touch("data/{analysis}/Figures/analyse_exploratoire_tous_echantillons/{file_name}")
+    shell:
+         "backend/analyse_exploratoire.R -i {input.data} -o {output} "
+
+rule reduce_data:
+    input:
+         data="data/{analysis}/preprocessed/{file_name}.csv"
+    output:
+          reduced="data/{analysis}/reduced/{file_name}.csv"
+    shell:
+         "backend/reduce.py -i {input.data} -o {output} -f {ANALYSIS} "
+
+
+rule divide_files:
+    input:
+         data="data/{analysis}/reduced/{file_name}.csv",
+         contrast_file="data/{analysis}/mapping/comparison_{file_name}.csv"
+    output:
+          touch("data/{analysis}/divided/{file_name}")
+    shell:
+         "backend/divide.py -i {input.data} -c {input.contrast_file} -o {output} -f {ANALYSIS}"
+
+
+
+# SECOND PART
+rule no_na:
+    input:
+         data="data/{analysis}/divided/{split_file}.csv"
+    output:
+          complete="data/{analysis}/missing_values/{split_file}_complete.csv",
+          filtered="data/{analysis}/missing_values/{split_file}.csv"
+    shell:
+         "backend/clean_na.py -i {input.data} -oc {output.complete} -of {output.filtered} -f {ANALYSIS} "
+
+rule CV:
+    input:
+         data="data/{analysis}/missing_values/{split_file}.csv"
+    output:
+          complete="data/{analysis}/CV/{split_file}_complete.csv",
+          filtered="data/{analysis}/CV/{split_file}.csv",
+          fig=touch("data/{analysis}/Figures/CV/{split_file}.png")
+    shell:
+         "backend/CV.py -i {input.data} -oc {output.complete} -of {output.filtered} -ofig {output.fig} -f {ANALYSIS}"
+
+rule heatmaps:
+    input:
+        data="data/{analysis}/CV/{split_file}.csv"
+    output:
+        png="data/{analysis}/Figures/heatmaps_exploratoire/{split_file}.png"
+    shell:
+        "backend/heatmaps.R -i {input.data} -o {output.png}"
+
+rule acp_rexplo:
+    input:
+        data="data/{analysis}/CV/{split_file}.csv"
+    output:
+        png=touch("data/{analysis}/Figures/acp_exploratoire/{split_file}.png")
+    shell:
+        "backend/ACP.R -i {input.data} -o {output.png}"
+
+rule set_comparison:
+    input:
+         data=ancient("data/{analysis}/CV/{split_file}.csv")
+    output:
+          data="data/{analysis}/set_comparison/{split_file}.csv",
+          figure="data/{analysis}/Figures/set_comparison/{split_file}.png"
+    shell:
+         "backend/set_comparison.py -i {input.data} -o {output.data} -of {output.figure} -f {ANALYSIS} "
+
+rule log2FC:
+    input:
+         data=ancient("data/{analysis}/CV/{split_file}.csv")
+    output:
+          data="data/{analysis}/log2FC/{split_file}.csv"
+    shell:
+         "backend/ratio.py -i {input.data} -o {output.data} -f {ANALYSIS} "
+
+rule overlap:
+    input:
+         data=ancient("data/{analysis}/log2FC/{split_file}.csv", )
+    output:
+          data="data/{analysis}/overlap/{split_file}.csv"
+    shell:
+         "backend/overlap.py -i {input.data} -o {output.data} -f {ANALYSIS} "
+
+rule ttest:
+    input:
+         data="data/{analysis}/overlap/{split_file}.csv"
+    output:
+         res = "data/{analysis}/ttest/{split_file}.csv"
+    shell:
+         "backend/ttest.py -i {input.data} -o {output} -f {ANALYSIS} "
+
+rule distribution:
+    input:
+         data="data/{analysis}/overlap/{split_file}.csv"
+    output:
+          csv="data/{analysis}/distribution/{split_file}.csv",
+          hist="data/{analysis}/Figures/distribution/{split_file}.png"
+    shell:
+         "backend/distribution.py -i {input.data} -o {output.csv} -hd {output.hist} -f {ANALYSIS} "
+
+rule statistical_analysis:
+    input:
+         data="data/{analysis}/overlap/{split_file}.csv"
+    output:
+         res = "data/{analysis}/statistics/{split_file}.csv"
+    shell:
+         "backend/statistical_test.py -i {input.data} -o {output} -f {ANALYSIS} "
+
+rule gene_name:
+    input:
+         data="data/{analysis}/statistics/{split_file}.csv"
+    output:
+          genename="data/{analysis}/gene_name/{split_file}.csv"
+    shell:
+         "backend/gene_name.py -i {input.data} -o {output.genename} -f {ANALYSIS} "
+
+rule volcano_plots:
+    input:
+         data="data/{analysis}/gene_name/{split_file}.csv"
+    output:
+         plots="data/{analysis}/Figures/volcano_plot/{split_file}.png"
+    shell:
+         "backend/volcano_plot.R -i {input.data} -o {output.plots} -p {ANALYSIS} -wd {WORKDIR}"
+
+
+rule enrichment:
+    input:
+         data="data/{analysis}/gene_name/{split_file}.csv"
+    output:
+          filtered=touch("data/{analysis}/enrichment/{split_file}.csv")
+    shell:
+         "backend/enrichment_gprofiler.R -i {input.data} -o {output.filtered} -f {ANALYSIS} -wd {WORKDIR}"
+
+
+
+
+# no further changes on the main data file
+rule filter_data:
+    input:
+         data="data/{analysis}/gene_name/{split_file}.csv"
+    output:
+          csv=touch("data/{analysis}/filtered_data/{split_file}.csv")
+    shell:
+         "backend/filter_data.py -i {input.data} -o {output.csv} -f {ANALYSIS} "
+
+
+rule heatmaps_sig:
+    input:
+        data="data/{analysis}/filtered_data/{split_file}_filtered.csv"
+    output:
+        png="data/{analysis}/Figures/heatmaps_post_treatment/{split_file}.png"
+    shell:
+        "backend/heatmaps.R -i {input.data} -o {output.png}"
+
+
+rule acp_sig:
+    input:
+        data="data/{analysis}/filtered_data/{split_file}_filtered.csv"
+    output:
+        png=touch("data/{analysis}/Figures/acp_post_treatment/{split_file}.png")
+    shell:
+        "backend/ACP.R -i {input.data} -o {output.png}"
+
+## Exports
+# for one file
+rule export_augmented_data:
+    input:
+         data="data/{analysis}/gene_name/{split_file}.csv"
+    output:
+          "data/{analysis}/export/stats/{split_file}.csv"
+    shell:
+         "backend/export_files_for_biologists.py -i {input.data} -o {output} -f {ANALYSIS}"
+
+# for one dir
+rule export_selection_from_augmented_data:
+    input:
+         data="data/{analysis}/filtered_data/"
+    output:
+          directory("data/{analysis}/export/selection_from_stats/")
+    shell:
+         "mkdir -p {output} && backend/export_files_for_biologists.py -di {input.data} -do {output} -f {ANALYSIS} -oc"
+
+rule export_selection_from_gene_name:
+    input:
+         data="data/{analysis}/filtered_data_gn/"
+    output:
+          res=directory("data/{analysis}/export/selection_from_gn/")
+    shell:
+         "backend/export_files_for_biologists.py -di {input.data} -do {output} -f {ANALYSIS}"
+
+rule export_gene_name:
+    input:
+         data="data/{analysis}/gene_name/{split_file}.csv"
+    output:
+          "data/{analysis}/export/gene_name/{split_file}_gene_name.csv"
+    shell:
+         "backend/export_files_for_biologists.py -i {input.data} -o {output} -f {ANALYSIS}"
+
+
