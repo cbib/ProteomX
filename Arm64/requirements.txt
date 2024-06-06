@@ -125,7 +125,7 @@ threadpoolctl==3.3.0
 throttler==1.2.2
 tomli==2.0.1
 toposort==1.10
-tornado==6.4
+tornado==6.4.1
 tqdm==4.66.2
 traitlets==5.14.1
 typing_extensions==4.10.0
