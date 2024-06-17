@@ -131,7 +131,7 @@ traitlets==5.14.1
 typing_extensions==4.10.0
 tzdata==2024.1
 url-normalize==1.4.3
-urllib3==2.2.1
+urllib3==2.2.2
 virtualenv==20.25.1
 wcwidth==0.2.13
 webencodings==0.5.1
