@@ -7,7 +7,7 @@ backcall==0.2.0
 beautifulsoup4==4.12.3
 bioservices==1.11.2
 cattrs==23.2.3
-certifi==2024.2.2
+certifi==2024.7.4
 cffi==1.16.0
 chardet==5.2.0
 charset-normalizer==3.3.2
