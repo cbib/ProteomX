@@ -139,6 +139,6 @@ wrapt==1.16.0
 xlrd==2.0.1
 xmltodict==0.13.0
 yte==1.5.4
-zipp==3.17.0
+zipp==3.19.1
 zope.event==5.0
 zope.interface==6.2
